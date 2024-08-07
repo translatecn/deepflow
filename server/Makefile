@@ -24,15 +24,15 @@ generate_message:
 
 	cp -r ../message/flow_log.proto libs/datatype/pb/
 	# delete first 3 char of line 6-10 for go language
-	gsed -i '6,10s/^...//' libs/datatype/pb/flow_log.proto
+	sed -i '6,10s/^...//' libs/datatype/pb/flow_log.proto
 
 	cp -r ../message/metric.proto libs/flow-metrics/pb
 	# delete first 3 char of line 6-10 for go language
-	gsed -i '6,10s/^...//' libs/flow-metrics/pb/metric.proto
+	sed -i '6,10s/^...//' libs/flow-metrics/pb/metric.proto
 
 	cp ../message/stats.proto libs/stats/pb/stats.proto
 	# delete first 3 char of line 6-10 for go language
-	gsed -i '6,10s/^...//' libs/stats/pb/stats.proto
+	sed -i '6,10s/^...//' libs/stats/pb/stats.proto
 
 	go generate ./...
 
@@ -46,17 +46,15 @@ vendor:
 #	go install github.com/gogo/protobuf/protoc-gen-gofast@latest
 #	go install github.com/gogo/protobuf/protoc-gen-gogo@latest
 #	go install github.com/golang/protobuf/protoc-gen-go@latest
-# 	go install github.com/benbjohnson/tmpl@latest
-
-#	 GO111MODULE="off" GOPATH='/Users/acejilam/.gopath' /Users/acejilam/.gvm/gos/go1.18/bin/go get github.com/gogo/protobuf/protoc-gen-gofast
-#	 GO111MODULE="off" GOPATH='/Users/acejilam/.gopath' /Users/acejilam/.gvm/gos/go1.18/bin/go get github.com/gogo/protobuf/proto
-#	 GO111MODULE="off" GOPATH='/Users/acejilam/.gopath' /Users/acejilam/.gvm/gos/go1.18/bin/go get github.com/gogo/protobuf/jsonpb
-#	 GO111MODULE="off" GOPATH='/Users/acejilam/.gopath' /Users/acejilam/.gvm/gos/go1.18/bin/go get github.com/gogo/protobuf/protoc-gen-gogo
-#	 GO111MODULE="off" GOPATH='/Users/acejilam/.gopath' /Users/acejilam/.gvm/gos/go1.18/bin/go get github.com/gogo/protobuf/gogoproto
-#	 GO111MODULE="off" GOPATH='/Users/acejilam/.gopath' /Users/acejilam/.gvm/gos/go1.18/bin/go get github.com/golang/protobuf/protoc-gen-go
-
+#	go install github.com/benbjohnson/tmpl@latest
+#	GO111MODULE="off" GOPATH='/Users/acejilam/.gopath' /Users/acejilam/.gvm/gos/go1.18/bin/go get github.com/gogo/protobuf/protoc-gen-gofast
+#	GO111MODULE="off" GOPATH='/Users/acejilam/.gopath' /Users/acejilam/.gvm/gos/go1.18/bin/go get github.com/gogo/protobuf/proto
+#	GO111MODULE="off" GOPATH='/Users/acejilam/.gopath' /Users/acejilam/.gvm/gos/go1.18/bin/go get github.com/gogo/protobuf/jsonpb
+#	GO111MODULE="off" GOPATH='/Users/acejilam/.gopath' /Users/acejilam/.gvm/gos/go1.18/bin/go get github.com/gogo/protobuf/protoc-gen-gogo
+#	GO111MODULE="off" GOPATH='/Users/acejilam/.gopath' /Users/acejilam/.gvm/gos/go1.18/bin/go get github.com/gogo/protobuf/gogoproto
+#	GO111MODULE="off" GOPATH='/Users/acejilam/.gopath' /Users/acejilam/.gvm/gos/go1.18/bin/go get github.com/golang/protobuf/protoc-gen-go
 	go mod tidy && go mod download && go mod vendor
-	gfind ../vendor -type d -exec chmod +w {} \;
+	find ../vendor -type d -exec chmod +w {} \;
 	# optimize the write performance of Array(string) data type
 	patch -p1 -d ../vendor/github.com/ClickHouse/clickhouse-go/v2/ < patch/clickhouse-go/write_improve.patch
 	# reset the pointer to the nullable field
@@ -75,7 +73,7 @@ test: vendor generate_message $(generated_libs)
 
 .PHONY: server
 server: vendor generate_message
-	go build ${FLAGS} -o bin/deepflow-server${BINARY_SUFFIX} cmd/server/
+	docker run --rm -it -v `pwd`/../:/data -w /data/server registry.cn-hangzhou.aliyuncs.com/acejilam/mygo:v1.21.1 go build ${FLAGS} -o ../bin/deepflow-server${BINARY_SUFFIX} .
 
 .PHONY: querier
 querier: vendor generate_message
@@ -88,4 +86,4 @@ clean:
 	rm -rf vendor
 	rm -rf bin
 	rm -rf .test-coverage.txt
-	gfind . -name '*.pb.go' | grep -v libs/datatype/prompb/ | xargs -i rm -f {}
+	find . -name '*.pb.go' | grep -v libs/datatype/prompb/ | xargs -i rm -f {}

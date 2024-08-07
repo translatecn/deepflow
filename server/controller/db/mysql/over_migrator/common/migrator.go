@@ -148,7 +148,7 @@ func CreateDatabaseIfNotExists(dc *DBConfig) (bool, error) {
 }
 func initCEORGTables(dc *DBConfig) error {
 	log.Info(LogDBName(dc.Config.Database, "initialize CE org tables"))
-	initSQL, err := os.ReadFile(fmt.Sprintf("%s/init.sql", SQL_FILE_DIR))
+	initSQL, err := os.ReadFile(`./manifests/deepflow-docker-compose/common/config/mysql/init.sql`)
 	if err != nil {
 		log.Error(LogDBName(dc.Config.Database, "failed to read CE org sql file: %s", err.Error()))
 		return err
@@ -183,8 +183,11 @@ func InitCETables(dc *DBConfig) error {
 }
 
 func initCEDefaultORGTables(dc *DBConfig) error {
+	initSQL, _ := os.ReadFile(`./server/controller/db/mysql/migration/rawsql/init.sql`)
+	dc.DB.Exec(string(initSQL))
+
 	log.Info(LogDBName(dc.Config.Database, "initialize CE default org tables"))
-	initSQL, err := os.ReadFile(fmt.Sprintf("%s/default_init.sql", SQL_FILE_DIR))
+	initSQL, err := os.ReadFile(`./server/controller/db/mysql/migration/rawsql/default_init.sql`)
 	if err != nil {
 		log.Error(LogDBName(dc.Config.Database, "failed to read CE default org sql file: %s", err.Error()))
 		return err

@@ -19,6 +19,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/deepflowio/deepflow/server/common"
+	controller_common "github.com/deepflowio/deepflow/server/controller/common"
 	"github.com/deepflowio/deepflow/server/libs/over_logger"
 	"io"
 	"os"
@@ -28,7 +30,6 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/deepflowio/deepflow/server/common"
 	"github.com/deepflowio/deepflow/server/controller/controller"
 	"github.com/deepflowio/deepflow/server/controller/report"
 	"github.com/deepflowio/deepflow/server/controller/trisolaris/utils"
@@ -41,6 +42,10 @@ import (
 	"github.com/op/go-logging"
 )
 
+func init() {
+	os.Setenv(controller_common.RUNNING_MODE_KEY, "STANDALONE")
+	os.Setenv(controller_common.NODE_IP_KEY, "10.211.55.8")
+}
 func execName() string {
 	splitted := strings.Split(os.Args[0], "/")
 	return splitted[len(splitted)-1]
@@ -53,7 +58,9 @@ const (
 )
 
 var flagSet = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-var configPath = flagSet.String("f", "/etc/server.yaml", "Specify config file location")
+
+// var configPath = flagSet.String("f", "/etc/server.yaml", "Specify config file location")
+var configPath = flagSet.String("f", "./server/server.yaml", "Specify config file location")
 var version = flagSet.Bool("v", false, "Display the version")
 
 var Branch, RevCount, Revision, CommitDate, goVersion, CompileTime string
@@ -105,7 +112,8 @@ func main() {
 
 	shared := common.NewControllerIngesterShared()
 
-	go controller.Start(ctx, *configPath, cfg.LogFile, shared)
+	//go controller.Start(ctx, *configPath, cfg.LogFile, shared)
+	controller.Start(ctx, *configPath, cfg.LogFile, shared)
 
 	go querier.Start(*configPath, cfg.LogFile, shared)
 	closers := ingester.Start(*configPath, shared)

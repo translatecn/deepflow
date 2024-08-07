@@ -88,25 +88,6 @@ type DBs struct {
 	orgIDToDB map[int]*DB
 }
 
-func (c *DBs) Init(cfg config.MySqlConfig) error {
-	var err error
-	c.cfg = cfg
-	DefaultDB, err = c.NewDBIfNotExists(over_common.DEFAULT_ORG_ID)
-	if err != nil {
-		return err
-	}
-	orgIDs, err := CheckORGNumberAndLog()
-	if err != nil {
-		return err
-	}
-	for _, id := range orgIDs {
-		if _, err := c.NewDBIfNotExists(id); err != nil {
-			log.Errorf("[OID-%d] failed to create db: %s, please check org status", id, err.Error())
-		}
-	}
-	return nil
-}
-
 func (c *DBs) GetConfig() config.MySqlConfig {
 	return c.cfg
 }
@@ -142,23 +123,6 @@ func (c *DBs) set(orgID int, db *DB) {
 	c.mux.Lock()
 	defer c.mux.Unlock()
 	c.orgIDToDB[orgID] = db
-}
-
-func (c *DBs) check(db *DB) error {
-	if db.ORGID != over_common.DEFAULT_ORG_ID {
-		return nil
-	}
-	var version string
-	err := db.Raw("SELECT version FROM db_version").Scan(&version).Error
-	if err != nil {
-		log.Errorf("db: %s, failed to check db version: %s", db.Name, err.Error())
-		return err
-	}
-	if version != migration.DB_VERSION_EXPECTED {
-		log.Errorf("db: %s, current db version: %s != expected db version: %s", db.Name, version, migration.DB_VERSION_EXPECTED)
-		return err
-	}
-	return nil
 }
 
 func (c *DBs) DoOnAllDBs(execFunc func(db *DB) error) error {
@@ -212,4 +176,38 @@ func (c *DBs) NewDBIfNotExists(orgID int) (*DB, error) {
 
 	c.set(orgID, db)
 	return db, nil
+}
+func (c *DBs) check(db *DB) error {
+	if db.ORGID != over_common.DEFAULT_ORG_ID {
+		return nil
+	}
+	var version string
+	err := db.Raw("SELECT version FROM db_version").Scan(&version).Error
+	if err != nil {
+		log.Errorf("db: %s, failed to check db version: %s", db.Name, err.Error())
+		return err
+	}
+	if version != migration.DB_VERSION_EXPECTED {
+		log.Errorf("db: %s, current db version: %s != expected db version: %s", db.Name, version, migration.DB_VERSION_EXPECTED)
+		return err
+	}
+	return nil
+}
+func (c *DBs) Init(cfg config.MySqlConfig) error {
+	var err error
+	c.cfg = cfg
+	DefaultDB, err = c.NewDBIfNotExists(over_common.DEFAULT_ORG_ID)
+	if err != nil {
+		return err
+	}
+	orgIDs, err := CheckORGNumberAndLog()
+	if err != nil {
+		return err
+	}
+	for _, id := range orgIDs {
+		if _, err := c.NewDBIfNotExists(id); err != nil {
+			log.Errorf("[OID-%d] failed to create db: %s, please check org status", id, err.Error())
+		}
+	}
+	return nil
 }

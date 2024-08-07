@@ -1,5 +1,5 @@
 # logfile path
-log-file: /var/log/deepflow/server.log
+log-file: /tmp/server.log
 # loglevel: "debug/info/warn/error"
 log-level: info
 
@@ -46,7 +46,7 @@ controller:
   # grpc max message lenth default 100M
   grpc-max-message-length: 104857600
   # kubeconfig
-  kubeconfig:
+  kubeconfig: /root/.kube/config
   # election
   election-name: deepflow-server
   # Once every 24 hours DeepFlow will report usage data to usage.deepflow.yunshan.net
@@ -93,9 +93,9 @@ controller:
   mysql:
     database: deepflow
     user-name: root
-    user-password: deepflow
-    host: mysql
-    port: 30130
+    user-password: root
+    host: 192.168.31.50
+    port: 3306
     proxy-host:
     proxy-port:
     timeout: 30
