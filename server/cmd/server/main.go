@@ -105,7 +105,7 @@ func main() {
 
 	shared := common.NewControllerIngesterShared()
 
-	go controller.Start(ctx, *configPath, cfg.LogFile, shared)
+	go controller.Stardat(ctx, *configPath, cfg.LogFile, shared)
 
 	go querier.Start(*configPath, cfg.LogFile, shared)
 	closers := ingester.Start(*configPath, shared)

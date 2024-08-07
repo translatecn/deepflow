@@ -1,22 +1,9 @@
-module github.com/deepflowio/deepflow/server
+module github.com/deepflowio/deepflow
 
 go 1.18
 
 replace (
 	cloud.google.com/go => cloud.google.com/go v0.103.0
-	github.com/deepflowio/deepflow/server/controller/cloud/kubernetes_gather/expand => ./controller/cloud/kubernetes_gather/expand
-	github.com/deepflowio/deepflow/server/controller/cloud/platform => ./controller/cloud/platform
-	github.com/deepflowio/deepflow/server/controller/cloud/tencent/expand => ./controller/cloud/tencent/expand
-	github.com/deepflowio/deepflow/server/controller/db/mysql/migrator/table => ./controller/db/mysql/migrator/table
-	github.com/deepflowio/deepflow/server/controller/http/appender => ./controller/http/appender
-	github.com/deepflowio/deepflow/server/controller/http/service/configuration => ./controller/http/service/configuration
-	github.com/deepflowio/deepflow/server/controller/monitor/license => ./controller/monitor/license
-	github.com/deepflowio/deepflow/server/ingester/config/configdefaults => ./ingester/config/configdefaults
-	github.com/deepflowio/deepflow/server/querier/app/distributed_tracing/service/tracemap => ./querier/app/distributed_tracing/service/tracemap
-	github.com/deepflowio/deepflow/server/querier/app/prometheus/router/packet_adapter => ./querier/app/prometheus/router/packet_adapter
-	github.com/deepflowio/deepflow/server/querier/app/prometheus/service/packet_wrapper => ./querier/app/prometheus/service/packet_wrapper
-	github.com/deepflowio/deepflow/server/querier/app/tracing-adapter/service/packet_service => ./querier/app/tracing-adapter/service/packet_service
-	github.com/deepflowio/deepflow/server/querier/engine/clickhouse/packet_batch => ./querier/engine/clickhouse/packet_batch
 	github.com/ionos-cloud/sdk-go/v6 => github.com/ionos-cloud/sdk-go/v6 v6.1.0
 )
 
@@ -38,15 +25,6 @@ require (
 	github.com/cornelk/hashmap v1.0.8
 	github.com/deckarep/golang-set v1.8.0
 	github.com/deckarep/golang-set/v2 v2.1.0
-	github.com/deepflowio/deepflow/message v0.0.0-20240527060827-9ad113dbccad
-	github.com/deepflowio/deepflow/server/controller/cloud/kubernetes_gather/expand v0.0.0-00010101000000-000000000000
-	github.com/deepflowio/deepflow/server/controller/cloud/platform v0.0.0-00010101000000-000000000000
-	github.com/deepflowio/deepflow/server/controller/cloud/tencent/expand v0.0.0-00010101000000-000000000000
-	github.com/deepflowio/deepflow/server/controller/db/mysql/migrator/table v0.0.0-00010101000000-000000000000
-	github.com/deepflowio/deepflow/server/controller/http/service/configuration v0.0.0-00010101000000-000000000000
-	github.com/deepflowio/deepflow/server/controller/monitor/license v0.0.0-00010101000000-000000000000
-	github.com/deepflowio/deepflow/server/ingester/config/configdefaults v0.0.0-00010101000000-000000000000
-	github.com/deepflowio/deepflow/server/querier/engine/clickhouse/packet_batch v0.0.0-00010101000000-000000000000
 	github.com/deepflowio/tempopb v0.0.0-20230215110519-15853baf3a79
 	github.com/docker/go-units v0.4.0
 	github.com/gin-gonic/gin v1.9.1
@@ -100,18 +78,15 @@ require (
 	github.com/IBM/sarama v1.43.0
 	github.com/aws/aws-sdk-go-v2/service/eks v1.26.0
 	github.com/bytedance/sonic v1.11.8
-	github.com/deepflowio/deepflow/server/controller/http/appender v0.0.0-00010101000000-000000000000
-	github.com/deepflowio/deepflow/server/querier/app/distributed_tracing/service/tracemap v0.0.0-00010101000000-000000000000
-	github.com/deepflowio/deepflow/server/querier/app/prometheus/router/packet_adapter v0.0.0-00010101000000-000000000000
-	github.com/deepflowio/deepflow/server/querier/app/prometheus/service/packet_wrapper v0.0.0-00010101000000-000000000000
-	github.com/deepflowio/deepflow/server/querier/app/tracing-adapter/service/packet_service v0.0.0-00010101000000-000000000000
-	github.com/go-redis/redis/v9 v9.0.0-rc.2
 	github.com/golang/mock v1.6.0
 	github.com/grafana/pyroscope-go v1.0.4
 	github.com/klauspost/compress v1.17.7
+	github.com/mattn/go-runewidth v0.0.10
 	github.com/mitchellh/mapstructure v1.4.3
+	github.com/olekukonko/tablewriter v0.0.5
 	github.com/orcaman/concurrent-map/v2 v2.0.1
 	github.com/pyroscope-io/pyroscope v0.37.1
+	github.com/redis/go-redis/v9 v9.6.1
 	github.com/volcengine/volcengine-go-sdk v1.0.141
 	go.opentelemetry.io/collector/pdata v1.0.0
 	golang.org/x/exp v0.0.0-20240416160154-fe59bbe5cc7f
@@ -150,8 +125,12 @@ require (
 	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
+	github.com/onsi/ginkgo v1.16.5 // indirect
+	github.com/onsi/ginkgo/v2 v2.5.0 // indirect
+	github.com/onsi/gomega v1.24.1 // indirect
 	github.com/pyroscope-io/jfr-parser v0.5.2 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
+	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
@@ -265,5 +244,5 @@ require (
 	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9 // indirect
 	sigs.k8s.io/json v0.0.0-20211208200746-9f7c6b3444d2 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
-	sigs.k8s.io/yaml v1.3.0 // indirect
+	sigs.k8s.io/yaml v1.3.0
 )

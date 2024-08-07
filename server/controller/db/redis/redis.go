@@ -22,8 +22,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-redis/redis/v9"
 	"github.com/op/go-logging"
+	"github.com/redis/go-redis/v9"
 )
 
 var log = logging.MustGetLogger("db.redis")
