@@ -22,7 +22,7 @@ import (
 	"strings"
 
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
-	"github.com/deepflowio/deepflow/server/controller/db/redis"
+	"github.com/deepflowio/deepflow/server/controller/db/over_redis"
 	json "github.com/goccy/go-json"
 )
 
@@ -135,10 +135,10 @@ func (i *ChIPResource) generateNewData(db *mysql.DB) (map[IPResourceKey]mysql.Ch
 	lbIdToUidMap := getLBIdToUidMap(db)
 	natgwIdToUidMap := getNatgwIdToUidMap(db)
 	vpcIdToUidMap := getVPCIdToUidMap(db)
-	if redis.GetClient() == nil {
+	if over_redis.GetClient() == nil {
 		return keyToItem, false
 	}
-	res, err := redis.GetClient().DimensionResource.HGetAll(i.ctx, "deepflow_dimension_resource_ip").Result()
+	res, err := over_redis.GetClient().DimensionResource.HGetAll(i.ctx, "deepflow_dimension_resource_ip").Result()
 	if err != nil {
 		log.Error(err)
 		return nil, false

@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/deepflowio/deepflow/server/querier/over_config"
 	"regexp"
 	"strconv"
 	"strings"
@@ -29,7 +30,6 @@ import (
 	logging "github.com/op/go-logging"
 
 	"github.com/deepflowio/deepflow/server/querier/common"
-	"github.com/deepflowio/deepflow/server/querier/config"
 	"github.com/deepflowio/deepflow/server/querier/engine/clickhouse/client"
 	ckcommon "github.com/deepflowio/deepflow/server/querier/engine/clickhouse/common"
 )
@@ -197,11 +197,11 @@ func LoadTagDescriptions(tagData map[string]interface{}) error {
 					notSupportedOperators = ckcommon.ParseNotSupportedOperator(tag[8])
 				}
 				key := TagDescriptionKey{DB: db, Table: table, TagName: tag[0].(string)}
-				tagLanguage := dbTagData.(map[string]interface{})[table+"."+config.Cfg.Language].([][]interface{})[i]
+				tagLanguage := dbTagData.(map[string]interface{})[table+"."+over_config.Cfg.Language].([][]interface{})[i]
 				TAG_DESCRIPTION_KEYS = append(TAG_DESCRIPTION_KEYS, key)
 
 				enumFile := tag[4].(string)
-				enumFile = tag[4].(string) + "." + config.Cfg.Language
+				enumFile = tag[4].(string) + "." + over_config.Cfg.Language
 				displayName := tagLanguage[1].(string)
 				des := tagLanguage[2].(string)
 				description := NewTagDescription(
@@ -224,7 +224,7 @@ func LoadTagDescriptions(tagData map[string]interface{}) error {
 			// 根据tagEnumFile获取tagTypeToOperators
 			tagType, _ := enumFileToTagType[tagEnumFile]
 			if tagType == "" {
-				tagType, _ = enumFileToTagType[tagEnumFile+"."+config.Cfg.Language]
+				tagType, _ = enumFileToTagType[tagEnumFile+"."+over_config.Cfg.Language]
 			}
 			for _, enumValue := range enumData.([][]interface{}) {
 				// 如果是int/int_enum，则将value转为interface
@@ -251,8 +251,8 @@ func LoadTagDescriptions(tagData map[string]interface{}) error {
 
 	// 获取用户自定义tag的设置, 并创建翻译map
 	// Obtain user defined auto custom tag settings and supplement translation maps
-	if len(config.Cfg.AutoCustomTags) != 0 {
-		for _, AutoCustomTag := range config.Cfg.AutoCustomTags {
+	if len(over_config.Cfg.AutoCustomTags) != 0 {
+		for _, AutoCustomTag := range over_config.Cfg.AutoCustomTags {
 			tagName := AutoCustomTag.TagName
 			if tagName != "" {
 				for _, suffix := range []string{"", "_0", "_1"} {
@@ -639,8 +639,8 @@ func GetStaticTagDescriptions(db, table string) (response *common.Result, err er
 	}
 
 	// auto_custom_tag
-	if len(config.Cfg.AutoCustomTags) != 0 {
-		for _, AutoCustomTag := range config.Cfg.AutoCustomTags {
+	if len(over_config.Cfg.AutoCustomTags) != 0 {
+		for _, AutoCustomTag := range over_config.Cfg.AutoCustomTags {
 			tagName := AutoCustomTag.TagName
 			tagDisplayName := tagName
 			if AutoCustomTag.DisplayName != "" {
@@ -684,10 +684,10 @@ func GetDynamicTagDescriptions(db, table, rawSql, queryCacheTTL, orgID string, u
 	}
 	// 查询 k8s_label
 	chClient := client.Client{
-		Host:     config.Cfg.Clickhouse.Host,
-		Port:     config.Cfg.Clickhouse.Port,
-		UserName: config.Cfg.Clickhouse.User,
-		Password: config.Cfg.Clickhouse.Password,
+		Host:     over_config.Cfg.Clickhouse.Host,
+		Port:     over_config.Cfg.Clickhouse.Port,
+		UserName: over_config.Cfg.Clickhouse.User,
+		Password: over_config.Cfg.Clickhouse.Password,
 		DB:       "flow_tag",
 		Context:  ctx,
 	}
@@ -832,10 +832,10 @@ func GetDynamicTagDescriptions(db, table, rawSql, queryCacheTTL, orgID string, u
 		return response, nil
 	}
 	externalChClient := client.Client{
-		Host:     config.Cfg.Clickhouse.Host,
-		Port:     config.Cfg.Clickhouse.Port,
-		UserName: config.Cfg.Clickhouse.User,
-		Password: config.Cfg.Clickhouse.Password,
+		Host:     over_config.Cfg.Clickhouse.Host,
+		Port:     over_config.Cfg.Clickhouse.Port,
+		UserName: over_config.Cfg.Clickhouse.User,
+		Password: over_config.Cfg.Clickhouse.Password,
 		DB:       "flow_tag",
 		Context:  ctx,
 	}
@@ -1044,26 +1044,26 @@ func GetTagValues(db, table, sql, queryCacheTTL, orgID string, useQueryCache boo
 	// 根据tagEnumFile获取values
 	_, isEnumOK := TAG_ENUMS[tagDescription.EnumFile]
 	if !isEnumOK {
-		_, isEnumOK = TAG_ENUMS[strings.TrimSuffix(tagDescription.EnumFile, "."+config.Cfg.Language)]
+		_, isEnumOK = TAG_ENUMS[strings.TrimSuffix(tagDescription.EnumFile, "."+over_config.Cfg.Language)]
 	}
 	if !isEnumOK {
 		return GetTagResourceValues(db, table, sql)
 	}
 	_, isStringEnumOK := TAG_STRING_ENUMS[tagDescription.EnumFile]
 	if !isStringEnumOK {
-		_, isStringEnumOK = TAG_STRING_ENUMS[strings.TrimSuffix(tagDescription.EnumFile, "."+config.Cfg.Language)]
+		_, isStringEnumOK = TAG_STRING_ENUMS[strings.TrimSuffix(tagDescription.EnumFile, "."+over_config.Cfg.Language)]
 	}
 	if isStringEnumOK {
 		table = "string_enum_map"
-		tag = strings.TrimSuffix(tagDescription.EnumFile, "."+config.Cfg.Language)
+		tag = strings.TrimSuffix(tagDescription.EnumFile, "."+over_config.Cfg.Language)
 	}
 	_, isIntEnumOK := TAG_INT_ENUMS[tagDescription.EnumFile]
 	if !isIntEnumOK {
-		_, isIntEnumOK = TAG_INT_ENUMS[strings.TrimSuffix(tagDescription.EnumFile, "."+config.Cfg.Language)]
+		_, isIntEnumOK = TAG_INT_ENUMS[strings.TrimSuffix(tagDescription.EnumFile, "."+over_config.Cfg.Language)]
 	}
 	if isIntEnumOK {
 		table = "int_enum_map"
-		tag = strings.TrimSuffix(tagDescription.EnumFile, "."+config.Cfg.Language)
+		tag = strings.TrimSuffix(tagDescription.EnumFile, "."+over_config.Cfg.Language)
 	}
 
 	var limitSql string

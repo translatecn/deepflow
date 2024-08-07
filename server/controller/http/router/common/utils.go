@@ -25,7 +25,7 @@ import (
 
 	"github.com/deepflowio/deepflow/server/controller/common"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
-	mysqlcommon "github.com/deepflowio/deepflow/server/controller/db/mysql/common"
+	mysqlcommon "github.com/deepflowio/deepflow/server/controller/db/mysql/over_common"
 )
 
 func GetContextOrgDB(ctx *gin.Context) (*mysql.DB, error) {

@@ -47,6 +47,41 @@ type IDManagers struct {
 	recorderCfg  config.RecorderConfig
 }
 
+func (m *IDManagers) Stop() {
+	if m.cancel != nil {
+		m.cancel()
+	}
+	// clear before each stop
+	m.orgIDToIDMng = make(map[int]*IDManager)
+	m.inUse = false
+	log.Info("resource id managers stopped")
+}
+
+func (m *IDManagers) refresh() error {
+	if err := m.checkORGs(); err != nil {
+		return err
+	}
+	for _, mng := range m.orgIDToIDMng {
+		mng.Refresh()
+	}
+	return nil
+}
+
+func (m *IDManagers) checkORGs() error {
+	orgIDs, err := mysql.GetORGIDs()
+	if err != nil {
+		return fmt.Errorf("failed to get org ids: %v", err)
+	}
+
+	m.mux.Lock()
+	defer m.mux.Unlock()
+	for orgID := range m.orgIDToIDMng {
+		if !slices.Contains(orgIDs, orgID) {
+			delete(m.orgIDToIDMng, orgID)
+		}
+	}
+	return nil
+}
 func GetIDManagers() *IDManagers {
 	idMngsOnce.Do(func() {
 		idMngs = &IDManagers{}
@@ -79,34 +114,6 @@ func (m *IDManagers) Start(ctx context.Context) error {
 
 	m.timedRefresh()
 	return nil
-}
-
-func (m *IDManagers) Stop() {
-	if m.cancel != nil {
-		m.cancel()
-	}
-	// clear before each stop
-	m.orgIDToIDMng = make(map[int]*IDManager)
-	m.inUse = false
-	log.Info("resource id managers stopped")
-}
-
-// 定时刷新所有组织的 ID 池，恢复/修复页面删除 domain/sub_domain、定时永久删除无效资源等操作释放的 ID
-func (m *IDManagers) timedRefresh() {
-	go func() {
-		ticker := time.NewTicker(time.Hour)
-		defer ticker.Stop()
-
-	LOOP:
-		for {
-			select {
-			case <-ticker.C:
-				m.refresh()
-			case <-m.ctx.Done():
-				break LOOP
-			}
-		}
-	}()
 }
 
 func (m *IDManagers) lazyCreate(orgID int) (*IDManager, error) {
@@ -147,28 +154,20 @@ func (m *IDManagers) NewIDManagerAndInitIfNotExists(orgID int) (*IDManager, erro
 	return mng, nil
 }
 
-func (m *IDManagers) refresh() error {
-	if err := m.checkORGs(); err != nil {
-		return err
-	}
-	for _, mng := range m.orgIDToIDMng {
-		mng.Refresh()
-	}
-	return nil
-}
+// 定时刷新所有组织的 ID 池，恢复/修复页面删除 domain/sub_domain、定时永久删除无效资源等操作释放的 ID
+func (m *IDManagers) timedRefresh() {
+	go func() {
+		ticker := time.NewTicker(time.Hour)
+		defer ticker.Stop()
 
-func (m *IDManagers) checkORGs() error {
-	orgIDs, err := mysql.GetORGIDs()
-	if err != nil {
-		return fmt.Errorf("failed to get org ids: %v", err)
-	}
-
-	m.mux.Lock()
-	defer m.mux.Unlock()
-	for orgID := range m.orgIDToIDMng {
-		if !slices.Contains(orgIDs, orgID) {
-			delete(m.orgIDToIDMng, orgID)
+	LOOP:
+		for {
+			select {
+			case <-ticker.C:
+				m.refresh()
+			case <-m.ctx.Done():
+				break LOOP
+			}
 		}
-	}
-	return nil
+	}()
 }

@@ -20,13 +20,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/deepflowio/deepflow/server/querier/over_config"
 	"regexp"
 	"strings"
 
 	"golang.org/x/exp/slices"
 
 	"github.com/deepflowio/deepflow/server/querier/common"
-	"github.com/deepflowio/deepflow/server/querier/config"
 	ckcommon "github.com/deepflowio/deepflow/server/querier/engine/clickhouse/common"
 	"github.com/deepflowio/deepflow/server/querier/engine/clickhouse/tag"
 	"github.com/deepflowio/deepflow/server/querier/engine/clickhouse/trans_prometheus"
@@ -167,10 +167,10 @@ func GetTagTypeMetrics(tagDescriptions *common.Result, newAllMetrics map[string]
 					serverDisplayName = displayName
 					clientDisplayName = displayName
 				)
-				if config.Cfg.Language == "en" {
+				if over_config.Cfg.Language == "en" {
 					serverDisplayName = ckcommon.TagServerEnPrefix + " " + displayName
 					clientDisplayName = ckcommon.TagClientEnPrefix + " " + displayName
-				} else if config.Cfg.Language == "ch" {
+				} else if over_config.Cfg.Language == "ch" {
 					if letterRegexp.MatchString(serverName) {
 						serverDisplayName = ckcommon.TagServerChPrefix + " " + displayName
 						clientDisplayName = ckcommon.TagClientChPrefix + " " + displayName
@@ -662,7 +662,7 @@ func LoadMetrics(db string, table string, dbDescription map[string]interface{}) 
 
 	if ok {
 		metricsData, ok := tableDate.(map[string]interface{})[table]
-		metricsDataLanguage, _ := tableDate.(map[string]interface{})[table+"."+config.Cfg.Language]
+		metricsDataLanguage, _ := tableDate.(map[string]interface{})[table+"."+over_config.Cfg.Language]
 		if ok {
 			loadMetrics = make(map[string]*Metrics)
 			for i, metrics := range metricsData.([][]interface{}) {

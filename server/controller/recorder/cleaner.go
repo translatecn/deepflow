@@ -48,20 +48,6 @@ type Cleaners struct {
 	orgIDToCleaner map[int]*Cleaner
 }
 
-func GetCleaners() *Cleaners {
-	cleanersOnce.Do(func() {
-		cleaners = new(Cleaners)
-	})
-	return cleaners
-}
-
-func (c *Cleaners) Init(ctx context.Context, cfg config.RecorderConfig) {
-	c.ctx, c.cancel = context.WithCancel(ctx)
-	c.cfg = cfg
-	c.orgIDToCleaner = make(map[int]*Cleaner)
-	return
-}
-
 func (c *Cleaners) Start(sContext context.Context) error {
 	log.Info("resource clean started")
 
@@ -550,4 +536,17 @@ func (t *toolData) load(db *mysql.DB) error {
 		)
 	}
 	return nil
+}
+func GetCleaners() *Cleaners {
+	cleanersOnce.Do(func() {
+		cleaners = new(Cleaners)
+	})
+	return cleaners
+}
+
+func (c *Cleaners) Init(ctx context.Context, cfg config.RecorderConfig) {
+	c.ctx, c.cancel = context.WithCancel(ctx)
+	c.cfg = cfg
+	c.orgIDToCleaner = make(map[int]*Cleaner)
+	return
 }

@@ -37,18 +37,6 @@ func CheckOrgID(orgID int) bool {
 	return orgID <= common.ORG_ID_MAX
 }
 
-func GetWaitGroupInCtx(ctx context.Context) *sync.WaitGroup {
-	if wg, ok := ctx.Value(ctxKeyWaitGroup{}).(*sync.WaitGroup); ok {
-		return wg
-	}
-
-	return nil
-}
-
-func NewWaitGroupCtx() (context.Context, context.CancelFunc) {
-	return context.WithCancel(context.WithValue(context.Background(), ctxKeyWaitGroup{}, new(sync.WaitGroup)))
-}
-
 type Number interface {
 	~int | ~string | uint32
 }
@@ -180,4 +168,16 @@ func (o ORGID) Log(logStr string) string {
 
 func (o ORGID) GetORGID() int {
 	return int(o)
+}
+
+func NewWaitGroupCtx() (context.Context, context.CancelFunc) {
+	return context.WithCancel(context.WithValue(context.Background(), ctxKeyWaitGroup{}, new(sync.WaitGroup)))
+}
+
+func GetWaitGroupInCtx(ctx context.Context) *sync.WaitGroup {
+	if wg, ok := ctx.Value(ctxKeyWaitGroup{}).(*sync.WaitGroup); ok {
+		return wg
+	}
+
+	return nil
 }

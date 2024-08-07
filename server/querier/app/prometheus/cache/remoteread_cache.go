@@ -17,6 +17,7 @@
 package cache
 
 import (
+	"github.com/deepflowio/deepflow/server/querier/over_config"
 	"sort"
 	"sync"
 	"sync/atomic"
@@ -25,7 +26,6 @@ import (
 
 	"github.com/deepflowio/deepflow/server/libs/lru"
 	"github.com/deepflowio/deepflow/server/querier/app/prometheus/model"
-	"github.com/deepflowio/deepflow/server/querier/config"
 	"github.com/deepflowio/deepflow/server/querier/statsd"
 	"github.com/prometheus/prometheus/prompb"
 )
@@ -112,7 +112,7 @@ func (c *CacheItem) Hit(start int64, end int64) CacheHit {
 
 	// deviation: fix up end time, cache hit left
 	if start < c.endTime && start >= c.startTime && end > c.endTime {
-		if end-c.endTime <= int64(config.Cfg.Prometheus.Cache.CacheAllowTimeGap) {
+		if end-c.endTime <= int64(over_config.Cfg.Prometheus.Cache.CacheAllowTimeGap) {
 			return CacheHitFull
 		} else {
 			return CacheHitPart
@@ -265,7 +265,7 @@ var (
 func PromReadResponseCache() *RemoteReadQueryCache {
 	syncOnce.Do(func() {
 		readResponseCache = NewRemoteReadQueryCache()
-		go readResponseCache.startUpCleanCache(config.Cfg.Prometheus.Cache.CacheCleanInterval)
+		go readResponseCache.startUpCleanCache(over_config.Cfg.Prometheus.Cache.CacheCleanInterval)
 	})
 	return readResponseCache
 }
@@ -291,7 +291,7 @@ func (r *RemoteReadQueryCache) cleanCache() {
 			continue
 		}
 		size := item.Size()
-		if size > config.Cfg.Prometheus.Cache.CacheItemSize {
+		if size > over_config.Cfg.Prometheus.Cache.CacheItemSize {
 			log.Infof("cache item remove: %s, real size: %d", k, size)
 			r.cache.Remove(k)
 		}
@@ -300,7 +300,7 @@ func (r *RemoteReadQueryCache) cleanCache() {
 
 func NewRemoteReadQueryCache() *RemoteReadQueryCache {
 	s := &RemoteReadQueryCache{
-		cache:   lru.NewCache[string, *CacheItem](config.Cfg.Prometheus.Cache.CacheMaxCount),
+		cache:   lru.NewCache[string, *CacheItem](over_config.Cfg.Prometheus.Cache.CacheMaxCount),
 		counter: &CacheCounter{Stats: &CacheStats{}},
 		lock:    &sync.RWMutex{},
 	}

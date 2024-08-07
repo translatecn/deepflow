@@ -18,6 +18,7 @@ package service
 
 import (
 	"fmt"
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 	"reflect"
 	"strconv"
 	"strings"
@@ -27,7 +28,6 @@ import (
 
 	"github.com/deepflowio/deepflow/server/agent_config"
 	"github.com/deepflowio/deepflow/server/controller/common"
-	"github.com/deepflowio/deepflow/server/controller/config"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
 	httpcommon "github.com/deepflowio/deepflow/server/controller/http/common"
 	"github.com/deepflowio/deepflow/server/controller/model"
@@ -35,12 +35,12 @@ import (
 )
 
 type AgentGroupConfig struct {
-	cfg *config.ControllerConfig
+	cfg *over_config.ControllerConfig
 
 	resourceAccess *ResourceAccess
 }
 
-func NewAgentGroupConfig(userInfo *httpcommon.UserInfo, cfg *config.ControllerConfig) *AgentGroupConfig {
+func NewAgentGroupConfig(userInfo *httpcommon.UserInfo, cfg *over_config.ControllerConfig) *AgentGroupConfig {
 	return &AgentGroupConfig{
 		cfg:            cfg,
 		resourceAccess: &ResourceAccess{fpermit: cfg.FPermit, userInfo: userInfo},

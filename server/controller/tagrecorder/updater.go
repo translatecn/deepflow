@@ -18,9 +18,9 @@ package tagrecorder
 
 import (
 	"context"
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 	"time"
 
-	"github.com/deepflowio/deepflow/server/controller/config"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql/query"
 )
@@ -28,7 +28,7 @@ import (
 type UpdaterManager struct {
 	tCtx                 context.Context
 	tCancel              context.CancelFunc
-	cfg                  config.ControllerConfig
+	cfg                  over_config.ControllerConfig
 	domainLcuuidToIconID map[string]int // TODO
 	resourceTypeToIconID map[IconKey]int
 }
@@ -40,7 +40,7 @@ func GetUpdaterManager() *UpdaterManager {
 	return updaterManager
 }
 
-func (u *UpdaterManager) Init(ctx context.Context, cfg config.ControllerConfig) {
+func (u *UpdaterManager) Init(ctx context.Context, cfg over_config.ControllerConfig) {
 	u.cfg = cfg
 	u.tCtx, u.tCancel = context.WithCancel(ctx)
 }
@@ -118,7 +118,7 @@ type Updater interface {
 	// 遍历新的ch数据，若key不在旧的ch数据中，则新增；否则检查是否有更新，若有更新，则更新
 	// 遍历旧的ch数据，若key不在新的ch数据中，则删除
 	Refresh() bool
-	SetConfig(cfg config.ControllerConfig)
+	SetConfig(cfg over_config.ControllerConfig)
 }
 
 type updaterDataGenerator[MT MySQLChModel, KT ChModelKey] interface {
@@ -131,7 +131,7 @@ type updaterDataGenerator[MT MySQLChModel, KT ChModelKey] interface {
 }
 
 type UpdaterComponent[MT MySQLChModel, KT ChModelKey] struct {
-	cfg              config.ControllerConfig
+	cfg              over_config.ControllerConfig
 	resourceTypeName string
 	updaterDG        updaterDataGenerator[MT, KT]
 	dbOperator       operator[MT, KT]
@@ -145,7 +145,7 @@ func newUpdaterComponent[MT MySQLChModel, KT ChModelKey](resourceTypeName string
 	return u
 }
 
-func (b *UpdaterComponent[MT, KT]) SetConfig(cfg config.ControllerConfig) {
+func (b *UpdaterComponent[MT, KT]) SetConfig(cfg over_config.ControllerConfig) {
 	b.cfg = cfg
 	b.dbOperator.setConfig(cfg)
 }

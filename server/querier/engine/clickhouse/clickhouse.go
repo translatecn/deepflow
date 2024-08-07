@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/deepflowio/deepflow/server/querier/over_config"
 	"regexp"
 	"sort"
 	"strconv"
@@ -32,7 +33,6 @@ import (
 	"golang.org/x/exp/slices"
 
 	"github.com/deepflowio/deepflow/server/querier/common"
-	"github.com/deepflowio/deepflow/server/querier/config"
 	"github.com/deepflowio/deepflow/server/querier/engine/clickhouse/client"
 	chCommon "github.com/deepflowio/deepflow/server/querier/engine/clickhouse/common"
 	"github.com/deepflowio/deepflow/server/querier/engine/clickhouse/metrics"
@@ -139,7 +139,7 @@ func (e *CHEngine) ExecuteQuery(args *common.QuerierParams) (*common.Result, map
 	}
 	// Parse showSql
 	debug := &client.Debug{
-		IP:        config.Cfg.Clickhouse.Host,
+		IP:        over_config.Cfg.Clickhouse.Host,
 		QueryUUID: query_uuid,
 	}
 	// For testing purposes, ParseShowSql requires the addition of the debug parameter
@@ -157,10 +157,10 @@ func (e *CHEngine) ExecuteQuery(args *common.QuerierParams) (*common.Result, map
 	}
 	results := &common.Result{}
 	chClient := client.Client{
-		Host:     config.Cfg.Clickhouse.Host,
-		Port:     config.Cfg.Clickhouse.Port,
-		UserName: config.Cfg.Clickhouse.User,
-		Password: config.Cfg.Clickhouse.Password,
+		Host:     over_config.Cfg.Clickhouse.Host,
+		Port:     over_config.Cfg.Clickhouse.Port,
+		UserName: over_config.Cfg.Clickhouse.User,
+		Password: over_config.Cfg.Clickhouse.Password,
 		DB:       e.DB,
 		Debug:    debug,
 		Context:  e.Context,
@@ -275,10 +275,10 @@ func ShowTagTypeMetrics(tagDescriptions, result *common.Result, db, table string
 					serverDisplayName = displayName
 					clientDisplayName = displayName
 				)
-				if config.Cfg.Language == "en" {
+				if over_config.Cfg.Language == "en" {
 					serverDisplayName = chCommon.TagServerEnPrefix + " " + displayName
 					clientDisplayName = chCommon.TagClientEnPrefix + " " + displayName
-				} else if config.Cfg.Language == "ch" {
+				} else if over_config.Cfg.Language == "ch" {
 					if letterRegexp.MatchString(serverName) {
 						serverDisplayName = chCommon.TagServerChPrefix + " " + displayName
 						clientDisplayName = chCommon.TagClientChPrefix + " " + displayName
@@ -362,7 +362,7 @@ func (e *CHEngine) ParseShowSql(sql string, args *common.QuerierParams, DebugInf
 	case 1: // show language ...
 		result := &common.Result{}
 		result.Columns = []interface{}{"language"}
-		result.Values = []interface{}{[]string{config.Cfg.Language}}
+		result.Values = []interface{}{[]string{over_config.Cfg.Language}}
 		return result, []string{}, true, nil
 	case 2: // show metrics functions ...
 		funcs, err := metrics.GetFunctionDescriptions()
@@ -410,16 +410,16 @@ func (e *CHEngine) QuerySlimitSql(sql string, args *common.QuerierParams) (*comm
 
 	query_uuid := args.QueryUUID
 	debug := &client.Debug{
-		IP:        config.Cfg.Clickhouse.Host,
+		IP:        over_config.Cfg.Clickhouse.Host,
 		QueryUUID: query_uuid,
 	}
 
 	debug.Sql = sql
 	chClient := client.Client{
-		Host:     config.Cfg.Clickhouse.Host,
-		Port:     config.Cfg.Clickhouse.Port,
-		UserName: config.Cfg.Clickhouse.User,
-		Password: config.Cfg.Clickhouse.Password,
+		Host:     over_config.Cfg.Clickhouse.Host,
+		Port:     over_config.Cfg.Clickhouse.Port,
+		UserName: over_config.Cfg.Clickhouse.User,
+		Password: over_config.Cfg.Clickhouse.Password,
 		DB:       e.DB,
 		Debug:    debug,
 		Context:  e.Context,
@@ -770,15 +770,15 @@ func (e *CHEngine) QueryWithSql(sql string, args *common.QuerierParams) (*common
 
 	query_uuid := args.QueryUUID
 	debug := &client.Debug{
-		IP:        config.Cfg.Clickhouse.Host,
+		IP:        over_config.Cfg.Clickhouse.Host,
 		QueryUUID: query_uuid,
 	}
 	debug.Sql = sql
 	chClient := client.Client{
-		Host:     config.Cfg.Clickhouse.Host,
-		Port:     config.Cfg.Clickhouse.Port,
-		UserName: config.Cfg.Clickhouse.User,
-		Password: config.Cfg.Clickhouse.Password,
+		Host:     over_config.Cfg.Clickhouse.Host,
+		Port:     over_config.Cfg.Clickhouse.Port,
+		UserName: over_config.Cfg.Clickhouse.User,
+		Password: over_config.Cfg.Clickhouse.Password,
 		DB:       e.DB,
 		Debug:    debug,
 		Context:  e.Context,
@@ -978,7 +978,7 @@ func (e *CHEngine) TransPrometheusTargetIDFilter(expr view.Node) (view.Node, err
 			filter := targetFilter.Filter
 			filterTime := targetFilter.Time
 			timeout := time.Since(filterTime)
-			if filter != INVALID_PROMETHEUS_SUBQUERY_CACHE_ENTRY && timeout < time.Duration(config.Cfg.PrometheusIdSubqueryLruTimeout) {
+			if filter != INVALID_PROMETHEUS_SUBQUERY_CACHE_ENTRY && timeout < time.Duration(over_config.Cfg.PrometheusIdSubqueryLruTimeout) {
 				rightExpr := &view.Expr{Value: targetFilter.Filter}
 				op := view.Operator{Type: view.AND}
 				expr = &view.BinaryExpr{Left: expr, Right: rightExpr, Op: &op}
@@ -996,10 +996,10 @@ func (e *CHEngine) TransPrometheusTargetIDFilter(expr view.Node) (view.Node, err
 		// lru timeout
 		sql := strings.Join(trgetTransFilters, " INTERSECT ")
 		chClient := client.Client{
-			Host:     config.Cfg.Clickhouse.Host,
-			Port:     config.Cfg.Clickhouse.Port,
-			UserName: config.Cfg.Clickhouse.User,
-			Password: config.Cfg.Clickhouse.Password,
+			Host:     over_config.Cfg.Clickhouse.Host,
+			Port:     over_config.Cfg.Clickhouse.Port,
+			UserName: over_config.Cfg.Clickhouse.User,
+			Password: over_config.Cfg.Clickhouse.Password,
 			DB:       "flow_tag",
 		}
 		targetLabelRst, err := chClient.DoQuery(&client.QueryParams{Sql: sql, ORGID: e.ORGID})
@@ -1016,7 +1016,7 @@ func (e *CHEngine) TransPrometheusTargetIDFilter(expr view.Node) (view.Node, err
 
 		// If the target_id_list is less than a predefined, configurable length (such as 1000),
 		// insert it into the cache; otherwise, use a subquery
-		if len(targetIDs) < config.Cfg.MaxCacheableEntrySize {
+		if len(targetIDs) < over_config.Cfg.MaxCacheableEntrySize {
 			targetIDFilter := strings.Join(targetIDs, ",")
 			targetFilter := ""
 			if len(targetIDs) == 0 {
@@ -1029,7 +1029,7 @@ func (e *CHEngine) TransPrometheusTargetIDFilter(expr view.Node) (view.Node, err
 			expr = &view.BinaryExpr{Left: expr, Right: rightExpr, Op: &op}
 			entryValue := common.EntryValue{Time: time.Now(), Filter: targetFilter}
 			prometheusSubqueryCache.PrometheusSubqueryCache.Add(entryKey, entryValue)
-		} else if len(targetIDs) >= config.Cfg.MaxCacheableEntrySize {
+		} else if len(targetIDs) >= over_config.Cfg.MaxCacheableEntrySize {
 			// When you find that you can't join the cache,
 			// insert a special value into the cache so that the next time you check the cache, you will find
 			entryValue := common.EntryValue{Time: time.Now(), Filter: INVALID_PROMETHEUS_SUBQUERY_CACHE_ENTRY}
@@ -1825,8 +1825,8 @@ func FormatModel(m *view.Model) {
 func FormatLimit(m *view.Model) {
 	if m.Limit.Limit == "" {
 		defaultLimit := DEFAULT_LIMIT
-		if config.Cfg != nil {
-			defaultLimit = config.Cfg.Limit
+		if over_config.Cfg != nil {
+			defaultLimit = over_config.Cfg.Limit
 		}
 		m.Limit.Limit = defaultLimit
 	}

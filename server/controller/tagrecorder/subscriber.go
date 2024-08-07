@@ -17,11 +17,11 @@
 package tagrecorder
 
 import (
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 	"sync"
 
 	"golang.org/x/exp/slices"
 
-	"github.com/deepflowio/deepflow/server/controller/config"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
 	"github.com/deepflowio/deepflow/server/controller/recorder/constraint"
 	"github.com/deepflowio/deepflow/server/controller/recorder/pubsub"
@@ -35,7 +35,7 @@ var (
 )
 
 type SubscriberManager struct {
-	cfg                  config.ControllerConfig
+	cfg                  over_config.ControllerConfig
 	domainLcuuidToIconID map[string]int
 	resourceTypeToIconID map[IconKey]int
 
@@ -49,7 +49,7 @@ func GetSubscriberManager() *SubscriberManager {
 	return subscriberManager
 }
 
-func (c *SubscriberManager) Init(cfg config.ControllerConfig) {
+func (c *SubscriberManager) Init(cfg over_config.ControllerConfig) {
 	c.cfg = cfg
 }
 
@@ -139,7 +139,7 @@ func (c *SubscriberManager) getSubscribers() []Subscriber {
 
 type Subscriber interface {
 	Subscribe()
-	SetConfig(config.ControllerConfig)
+	SetConfig(over_config.ControllerConfig)
 	GetSubResourceType() string
 	pubsub.ResourceBatchAddedSubscriber
 	pubsub.ResourceUpdatedSubscriber
@@ -155,7 +155,7 @@ type SubscriberDataGenerator[MUPT msgconstraint.FieldsUpdatePtr[MUT], MUT msgcon
 }
 
 type SubscriberComponent[MUPT msgconstraint.FieldsUpdatePtr[MUT], MUT msgconstraint.FieldsUpdate, MT constraint.MySQLModel, CT MySQLChModel, KT ChModelKey] struct {
-	cfg config.ControllerConfig
+	cfg over_config.ControllerConfig
 
 	subResourceTypeName string // 订阅表资源类型，即源表资源类型
 	resourceTypeName    string // CH表资源类型
@@ -193,7 +193,7 @@ func (s *SubscriberComponent[MUPT, MUT, MT, CT, KT]) generateKeyTargets(md *mess
 	return keys, targets
 }
 
-func (s *SubscriberComponent[MUPT, MUT, MT, CT, KT]) SetConfig(cfg config.ControllerConfig) {
+func (s *SubscriberComponent[MUPT, MUT, MT, CT, KT]) SetConfig(cfg over_config.ControllerConfig) {
 	s.cfg = cfg
 	s.dbOperator.setConfig(cfg)
 }

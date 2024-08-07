@@ -25,29 +25,6 @@ import (
 	"github.com/deepflowio/deepflow/server/controller/common"
 )
 
-// 功能：判断当前控制器是否为masterController
-func IsMasterController() (bool, error) {
-	// in standalone mode, the local machine is the master node because of all in one deployment
-	if common.IsStandaloneRunningMode() == true {
-		return true, nil
-	}
-	// get self host_ip
-	hostIP := os.Getenv(common.POD_IP_KEY)
-	if len(hostIP) == 0 {
-		log.Error("pod_ip is null")
-		return false, errors.New("pod_ip is null")
-	}
-
-	// get leader
-	leaderID := GetLeader()
-	// node_name/node_ip/pod_name/pod_ip
-	leaderInfo := strings.Split(leaderID, "/")
-	if len(leaderInfo) != ID_ITEM_NUM || leaderInfo[3] == "" {
-		return false, errors.New(fmt.Sprintf("id (%s) is not expected", leaderID))
-	}
-	return hostIP == leaderInfo[3], nil
-}
-
 func IsMasterControllerAndReturnIP() (bool, string, error) {
 	// in standalone mode, the local machine is the master node because of all in one deployment
 	if common.IsStandaloneRunningMode() == true {
@@ -71,4 +48,27 @@ func IsMasterControllerAndReturnIP() (bool, string, error) {
 		return false, leaderInfo[3], nil
 	}
 	return true, hostIP, nil
+}
+
+// 功能：判断当前控制器是否为masterController
+func IsMasterController() (bool, error) {
+	// in standalone mode, the local machine is the master node because of all in one deployment
+	if common.IsStandaloneRunningMode() == true {
+		return true, nil
+	}
+	// get self host_ip
+	hostIP := os.Getenv(common.POD_IP_KEY)
+	if len(hostIP) == 0 {
+		log.Error("pod_ip is null")
+		return false, errors.New("pod_ip is null")
+	}
+
+	// get leader
+	leaderID := GetLeader()
+	// node_name/node_ip/pod_name/pod_ip
+	leaderInfo := strings.Split(leaderID, "/")
+	if len(leaderInfo) != ID_ITEM_NUM || leaderInfo[3] == "" {
+		return false, errors.New(fmt.Sprintf("id (%s) is not expected", leaderID))
+	}
+	return hostIP == leaderInfo[3], nil
 }

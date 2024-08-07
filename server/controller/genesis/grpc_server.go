@@ -30,7 +30,7 @@ import (
 	"github.com/deepflowio/deepflow/message/controller"
 	"github.com/deepflowio/deepflow/message/trident"
 	controllercommon "github.com/deepflowio/deepflow/server/controller/common"
-	mysqlcommon "github.com/deepflowio/deepflow/server/controller/db/mysql/common"
+	mysqlcommon "github.com/deepflowio/deepflow/server/controller/db/mysql/over_common"
 	"github.com/deepflowio/deepflow/server/controller/genesis/common"
 	"github.com/deepflowio/deepflow/server/controller/genesis/config"
 	"github.com/deepflowio/deepflow/server/libs/queue"
@@ -79,22 +79,6 @@ type SynchronizerServer struct {
 	clusterIDToLastSeen           sync.Map
 	prometheusClusterIDToLastSeen sync.Map
 	tridentStatsMap               sync.Map
-}
-
-func NewGenesisSynchronizerServer(cfg config.GenesisConfig, genesisSyncQueue, k8sQueue, prometheusQueue queue.QueueWriter) *SynchronizerServer {
-	return &SynchronizerServer{
-		cfg:                           cfg,
-		k8sQueue:                      k8sQueue,
-		prometheusQueue:               prometheusQueue,
-		genesisSyncQueue:              genesisSyncQueue,
-		vtapToVersion:                 sync.Map{},
-		vtapToLastSeen:                sync.Map{},
-		clusterIDToVersion:            sync.Map{},
-		prometheusClusterIDToVersion:  sync.Map{},
-		clusterIDToLastSeen:           sync.Map{},
-		prometheusClusterIDToLastSeen: sync.Map{},
-		tridentStatsMap:               sync.Map{},
-	}
 }
 
 func (g *SynchronizerServer) GetAgentStats(orgID, vtapID string) (TridentStats, error) {
@@ -703,4 +687,19 @@ func (g *SynchronizerServer) GenesisSharingSync(ctx context.Context, request *co
 			Process:    gSyncProcesses,
 		},
 	}, nil
+}
+func NewGenesisSynchronizerServer(cfg config.GenesisConfig, genesisSyncQueue, k8sQueue, prometheusQueue queue.QueueWriter) *SynchronizerServer {
+	return &SynchronizerServer{
+		cfg:                           cfg,
+		k8sQueue:                      k8sQueue,
+		prometheusQueue:               prometheusQueue,
+		genesisSyncQueue:              genesisSyncQueue,
+		vtapToVersion:                 sync.Map{},
+		vtapToLastSeen:                sync.Map{},
+		clusterIDToVersion:            sync.Map{},
+		prometheusClusterIDToVersion:  sync.Map{},
+		clusterIDToLastSeen:           sync.Map{},
+		prometheusClusterIDToLastSeen: sync.Map{},
+		tridentStatsMap:               sync.Map{},
+	}
 }

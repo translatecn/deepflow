@@ -18,13 +18,13 @@ package monitor
 
 import (
 	"context"
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 	"sort"
 	"time"
 
 	mapset "github.com/deckarep/golang-set"
 
 	"github.com/deepflowio/deepflow/server/controller/common"
-	"github.com/deepflowio/deepflow/server/controller/config"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
 	"github.com/deepflowio/deepflow/server/controller/http/service/rebalance"
 	mconfig "github.com/deepflowio/deepflow/server/controller/monitor/config"
@@ -42,7 +42,7 @@ type AnalyzerCheck struct {
 	exceptionAnalyzerDict map[string]*dfHostCheck
 }
 
-func NewAnalyzerCheck(cfg *config.ControllerConfig, ctx context.Context) *AnalyzerCheck {
+func NewAnalyzerCheck(cfg *over_config.ControllerConfig, ctx context.Context) *AnalyzerCheck {
 	cCtx, cCancel := context.WithCancel(ctx)
 	return &AnalyzerCheck{
 		cCtx:                  cCtx,

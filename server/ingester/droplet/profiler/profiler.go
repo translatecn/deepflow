@@ -47,12 +47,6 @@ const (
 
 var log = logging.MustGetLogger("profile")
 
-func NewProfiler(port int) *ProfilerServer {
-	server := &ProfilerServer{http.Server{Addr: "0.0.0.0:" + strconv.Itoa(port)}, port, false}
-	debug.Register(ingesterctl.INGESTERCTL_CONFIG, server)
-	return server
-}
-
 func (s *ProfilerServer) RecvCommand(conn *net.UDPConn, remote *net.UDPAddr, operate uint16, args *bytes.Buffer) {
 	switch operate {
 	case CONFIG_CMD_PROFILER_ON:
@@ -208,4 +202,10 @@ func RegisterProfilerCommand() *cobra.Command {
 	profiler.AddCommand(profilerOff)
 	profiler.AddCommand(profilerStatus)
 	return profiler
+}
+
+func NewProfiler(port int) *ProfilerServer {
+	server := &ProfilerServer{http.Server{Addr: "0.0.0.0:" + strconv.Itoa(port)}, port, false}
+	debug.Register(ingesterctl.INGESTERCTL_CONFIG, server)
+	return server
 }

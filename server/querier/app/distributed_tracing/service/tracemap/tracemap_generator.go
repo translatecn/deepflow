@@ -17,15 +17,15 @@ package tracemap
 
 import (
 	"github.com/deepflowio/deepflow/server/libs/queue"
-	"github.com/deepflowio/deepflow/server/querier/config"
+	"github.com/deepflowio/deepflow/server/querier/over_config"
 )
 
 type TraceMapGenerator struct {
 	sharedQueue *queue.OverwriteQueue
-	cfg         *config.QuerierConfig
+	cfg         *over_config.QuerierConfig
 }
 
-func NewTraceMapGenerator(sharedQueue *queue.OverwriteQueue, cfg *config.QuerierConfig) *TraceMapGenerator {
+func NewTraceMapGenerator(sharedQueue *queue.OverwriteQueue, cfg *over_config.QuerierConfig) *TraceMapGenerator {
 	return &TraceMapGenerator{sharedQueue: sharedQueue, cfg: cfg}
 }
 

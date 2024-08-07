@@ -20,15 +20,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 
 	"github.com/bitly/go-simplejson"
 	servercommon "github.com/deepflowio/deepflow/server/common"
 	controllerCommon "github.com/deepflowio/deepflow/server/controller/common"
-	"github.com/deepflowio/deepflow/server/controller/config"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
-	"github.com/deepflowio/deepflow/server/controller/db/mysql/common"
 	mysqlcfg "github.com/deepflowio/deepflow/server/controller/db/mysql/config"
-	"github.com/deepflowio/deepflow/server/controller/db/mysql/migrator"
+	"github.com/deepflowio/deepflow/server/controller/db/mysql/over_common"
+	"github.com/deepflowio/deepflow/server/controller/db/mysql/over_migrator"
 	"github.com/deepflowio/deepflow/server/controller/http/model"
 	"gorm.io/gorm"
 )
@@ -40,8 +40,8 @@ func CreateORGData(dataCreate model.ORGDataCreate, mysqlCfg mysqlcfg.MySqlConfig
 	mysql.CheckORGNumberAndLog()
 
 	defaultDatabase := mysqlCfg.Database
-	cfg := common.ReplaceConfigDatabaseName(mysqlCfg, dataCreate.ORGID)
-	existed, err := migrator.CreateDatabase(cfg) // TODO use orgID to create db
+	cfg := over_common.ReplaceConfigDatabaseName(mysqlCfg, dataCreate.ORGID)
+	existed, err := over_migrator.CreateDatabase(cfg) // TODO use orgID to create db
 	if err != nil {
 		return cfg.Database, err
 	}
@@ -73,14 +73,14 @@ func CreateORGData(dataCreate model.ORGDataCreate, mysqlCfg mysqlcfg.MySqlConfig
 
 func DeleteORGData(orgID int, mysqlCfg mysqlcfg.MySqlConfig) (err error) {
 	log.Infof("delete org (id: %d) data", orgID)
-	cfg := common.ReplaceConfigDatabaseName(mysqlCfg, orgID)
-	if err = migrator.DropDatabase(cfg); err != nil {
+	cfg := over_common.ReplaceConfigDatabaseName(mysqlCfg, orgID)
+	if err = over_migrator.DropDatabase(cfg); err != nil {
 		return err
 	}
 	return servercommon.DropOrg(uint16(orgID))
 }
 
-func GetORGData(cfg *config.ControllerConfig) (*simplejson.Json, error) {
+func GetORGData(cfg *over_config.ControllerConfig) (*simplejson.Json, error) {
 	errResponse, _ := simplejson.NewJson([]byte("{}"))
 	// no fpermit
 	if !cfg.FPermit.Enabled {

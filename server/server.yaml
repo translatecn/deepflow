@@ -4,16 +4,17 @@ log-file: /var/log/deepflow/server.log
 log-level: info
 
 ## open pprof serves via HTTP server port 9526. ref: https://pkg.go.dev/net/http/pprof
-#profiler: false
+profiler: false
 
 ## maximum usage of cpu cores, 0 means no limit
 #max-cpus: 0
 
+# pyroscope
 #continuous-profile:
-#  enabled: false
+#  enabled: true
 #  server-addr: http://deepflow-agent/api/v1/profile
 #  # support profile types: "cpu", "inuse_objects", "alloc_objects", "inuse_space", "alloc_space", "goroutines", "mutex_count", "mutex_duration", "block_count", "block_duration"
-#  profile-types: ["cpu", "inuse_objects", "alloc_objects", "inuse_space", "alloc_space"]
+#  profile-types: ["cpu", "inuse_objects", "alloc_objects", "inuse_space", "alloc_space", "goroutines", "mutex_count", "mutex_duration", "block_count", "block_duration"]
 #  mutex-rate: 5 # valid when ProfileTypes contains 'mutex_count' or 'mutex_duration'
 #  block-rate: 5 # valid when ProfileTypes contains 'block_count' or 'block_duration'
 #  log-enabled: true # whether record profile debug logs
@@ -28,8 +29,8 @@ log-level: info
 #    length: 13         # when 'format' is 'decimal' 'length' range is (0, 20], 'format' is 'hex' 'length' range is (0, 16].
 #    format: decimal    # hex/decimal
 
-## monitor the disk usage of the paths
-#monitor-paths: [/,/mnt,/var/log]
+# monitor the disk usage of the paths
+monitor-paths: [/,/mnt,/var/log]
 
 controller:
   ## controller http listenport
@@ -781,3 +782,9 @@ ingester:
   #  extra-headers:  # type: map[string]string, extra http request headers
   #    key1: value1
   #    key2: value2
+
+
+statsd:
+  enabled: true
+  host: 127.0.0.1
+  port: 20033

@@ -17,10 +17,10 @@
 package tagrecorder
 
 import (
+	"github.com/deepflowio/deepflow/server/querier/over_config"
 	"strings"
 
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
-	"github.com/deepflowio/deepflow/server/querier/config"
 	"github.com/deepflowio/deepflow/server/querier/engine/clickhouse/tag"
 )
 
@@ -49,7 +49,7 @@ func (e *ChStringEnum) generateNewData() (map[StringEnumTagKey]mysql.ChStringEnu
 	}
 
 	for name, tagValues := range respMap {
-		tagName := strings.TrimSuffix(name, "."+config.Cfg.Language)
+		tagName := strings.TrimSuffix(name, "."+over_config.Cfg.Language)
 		for _, valueAndName := range tagValues {
 			tagValue := valueAndName.([]interface{})[0]
 			tagDisplayName := valueAndName.([]interface{})[1]

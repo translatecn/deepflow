@@ -19,10 +19,10 @@ package tagrecorder
 import (
 	"errors"
 	"fmt"
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 
 	"github.com/bitly/go-simplejson"
 	"github.com/deepflowio/deepflow/server/controller/common"
-	"github.com/deepflowio/deepflow/server/controller/config"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
 )
 
@@ -36,7 +36,7 @@ type IconKey struct {
 	SubType  int
 }
 
-func ParseIcon(cfg config.ControllerConfig, response *simplejson.Json) (map[string]int, map[IconKey]int, error) {
+func ParseIcon(cfg over_config.ControllerConfig, response *simplejson.Json) (map[string]int, map[IconKey]int, error) {
 	domainToIconID := make(map[string]int)
 	resourceToIconID := make(map[IconKey]int)
 	if len(response.Get("DATA").MustArray()) == 0 {
@@ -96,7 +96,7 @@ func ParseIcon(cfg config.ControllerConfig, response *simplejson.Json) (map[stri
 
 // TODO: Icon supports multiple organizations
 // timing
-func UpdateIconInfo(cfg config.ControllerConfig) (map[string]int, map[IconKey]int, error) {
+func UpdateIconInfo(cfg over_config.ControllerConfig) (map[string]int, map[IconKey]int, error) {
 	domainToIconID := make(map[string]int)
 	resourceToIconID := make(map[IconKey]int)
 	if !cfg.DFWebService.Enabled {
@@ -113,7 +113,7 @@ func UpdateIconInfo(cfg config.ControllerConfig) (map[string]int, map[IconKey]in
 
 // TODO: Icon supports multiple organizations
 // subscriber
-func GetIconInfo(cfg config.ControllerConfig) (map[string]int, map[IconKey]int, error) {
+func GetIconInfo(cfg over_config.ControllerConfig) (map[string]int, map[IconKey]int, error) {
 	domainToIconID := make(map[string]int)
 	resourceToIconID := make(map[IconKey]int)
 	// master region

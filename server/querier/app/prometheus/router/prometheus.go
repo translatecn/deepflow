@@ -18,6 +18,7 @@ package router
 
 import (
 	"context"
+	"github.com/deepflowio/deepflow/server/querier/over_config"
 	"io"
 	"strconv"
 	"strings"
@@ -32,7 +33,6 @@ import (
 	"github.com/deepflowio/deepflow/server/querier/app/prometheus/model"
 	"github.com/deepflowio/deepflow/server/querier/app/prometheus/service"
 	"github.com/deepflowio/deepflow/server/querier/common"
-	"github.com/deepflowio/deepflow/server/querier/config"
 )
 
 const _STATUS_FAIL = "fail"
@@ -54,9 +54,9 @@ func promQuery(svc *service.PrometheusService) gin.HandlerFunc {
 		debug := c.Request.FormValue("debug")
 		block_team_id := c.Request.FormValue("block-team-id") // when parsed, block all team in query
 		offloading := c.Request.FormValue("operator-offloading")
-		setRouterArgs(slimit, &args.Slimit, config.Cfg.Prometheus.SeriesLimit, strconv.Atoi)
-		setRouterArgs(debug, &args.Debug, config.Cfg.Prometheus.RequestQueryWithDebug, strconv.ParseBool)
-		setRouterArgs(offloading, &args.Offloading, config.Cfg.Prometheus.OperatorOffloading, strconv.ParseBool)
+		setRouterArgs(slimit, &args.Slimit, over_config.Cfg.Prometheus.SeriesLimit, strconv.Atoi)
+		setRouterArgs(debug, &args.Debug, over_config.Cfg.Prometheus.RequestQueryWithDebug, strconv.ParseBool)
+		setRouterArgs(offloading, &args.Offloading, over_config.Cfg.Prometheus.OperatorOffloading, strconv.ParseBool)
 		err := setRouterArgs(block_team_id, &args.BlockTeamID, nil, splitStrings)
 		if err != nil {
 			code, obj := handleError(err)
@@ -88,9 +88,9 @@ func promQueryRange(svc *service.PrometheusService) gin.HandlerFunc {
 		debug := c.Request.FormValue("debug")
 		block_team_id := c.Request.FormValue("block-team-id")
 		offloading := c.Request.FormValue("operator-offloading")
-		setRouterArgs(slimit, &args.Slimit, config.Cfg.Prometheus.SeriesLimit, strconv.Atoi)
-		setRouterArgs(debug, &args.Debug, config.Cfg.Prometheus.RequestQueryWithDebug, strconv.ParseBool)
-		setRouterArgs(offloading, &args.Offloading, config.Cfg.Prometheus.OperatorOffloading, strconv.ParseBool)
+		setRouterArgs(slimit, &args.Slimit, over_config.Cfg.Prometheus.SeriesLimit, strconv.Atoi)
+		setRouterArgs(debug, &args.Debug, over_config.Cfg.Prometheus.RequestQueryWithDebug, strconv.ParseBool)
+		setRouterArgs(offloading, &args.Offloading, over_config.Cfg.Prometheus.OperatorOffloading, strconv.ParseBool)
 		err := setRouterArgs(block_team_id, &args.BlockTeamID, nil, splitStrings)
 		if err != nil {
 			code, obj := handleError(err)
@@ -125,7 +125,7 @@ func promReader(svc *service.PrometheusService) gin.HandlerFunc {
 		// configure remote read like: /api/v1/prom/read?operator-offloading=true
 		offloading := c.Request.FormValue("operator-offloading")
 		var offloadingArgs bool
-		setRouterArgs(offloading, &offloadingArgs, config.Cfg.Prometheus.OperatorOffloading, strconv.ParseBool)
+		setRouterArgs(offloading, &offloadingArgs, over_config.Cfg.Prometheus.OperatorOffloading, strconv.ParseBool)
 		orgID := c.Request.Header.Get(common.HEADER_KEY_X_ORG_ID)
 		resp, err := svc.PromRemoteReadService(&req, c.Request.Context(), offloadingArgs, orgID)
 		if err != nil {
@@ -185,8 +185,8 @@ func promSeriesReader(svc *service.PrometheusService) gin.HandlerFunc {
 		debug := c.Request.FormValue("debug")
 		block_team_id := c.Request.FormValue("block-team-id")
 		offloading := c.Request.FormValue("operator-offloading")
-		setRouterArgs(debug, &args.Debug, config.Cfg.Prometheus.RequestQueryWithDebug, strconv.ParseBool)
-		setRouterArgs(offloading, &args.Offloading, config.Cfg.Prometheus.OperatorOffloading, strconv.ParseBool)
+		setRouterArgs(debug, &args.Debug, over_config.Cfg.Prometheus.RequestQueryWithDebug, strconv.ParseBool)
+		setRouterArgs(offloading, &args.Offloading, over_config.Cfg.Prometheus.OperatorOffloading, strconv.ParseBool)
 		err := setRouterArgs(block_team_id, &args.BlockTeamID, nil, splitStrings)
 		if err != nil {
 			code, obj := handleError(err)

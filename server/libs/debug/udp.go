@@ -27,7 +27,7 @@ import (
 	"time"
 
 	"github.com/deepflowio/deepflow/server/libs/ckdb"
-	logging "github.com/op/go-logging"
+	"github.com/op/go-logging"
 	"github.com/spf13/cobra"
 )
 
@@ -61,11 +61,6 @@ type DebugMessage struct {
 	Module, Operate uint16
 	Result          uint32
 	Args            []byte
-}
-
-func SetIpAndPort(ip string, port int) {
-	hostIp = ip
-	hostPort = port
 }
 
 func SetOrgId(id int) {
@@ -218,4 +213,9 @@ func Register(module ModuleId, process CommandLineProcess) {
 // client注册命令处理
 func RegisterCommand(root *cobra.Command, moduleId ModuleId, handle RegisterCommmandLine) {
 	root.AddCommand(handle(moduleId))
+}
+
+func SetIpAndPort(ip string, port int) {
+	hostIp = ip
+	hostPort = port
 }

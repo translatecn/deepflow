@@ -37,6 +37,14 @@ var curStageStartedAt time.Time
 
 type Health struct{}
 
+func SetInitStageForHealthChecker(s string) {
+	if curStage != "" {
+		log.Infof("stage: %s, time cost: %v", curStage, time.Since(curStageStartedAt))
+	}
+	curStage = s
+	curStageStartedAt = time.Now()
+}
+
 func NewHealth() *Health {
 	return new(Health)
 }
@@ -54,12 +62,4 @@ func (s *Health) RegisterTo(e *gin.Engine) {
 			)
 		}
 	})
-}
-
-func SetInitStageForHealthChecker(s string) {
-	if curStage != "" {
-		log.Infof("stage: %s, time cost: %v", curStage, time.Since(curStageStartedAt))
-	}
-	curStage = s
-	curStageStartedAt = time.Now()
 }

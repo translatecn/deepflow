@@ -17,6 +17,7 @@
 package tracing_adapter
 
 import (
+	"github.com/deepflowio/deepflow/server/querier/over_config"
 	"net/http"
 	"sync"
 
@@ -24,7 +25,6 @@ import (
 	"github.com/deepflowio/deepflow/server/querier/app/tracing-adapter/model"
 	"github.com/deepflowio/deepflow/server/querier/app/tracing-adapter/service"
 	"github.com/deepflowio/deepflow/server/querier/common"
-	"github.com/deepflowio/deepflow/server/querier/config"
 	"github.com/gin-gonic/gin"
 	"github.com/op/go-logging"
 )
@@ -41,16 +41,16 @@ type adapterPipeline struct {
 }
 
 func ensureAdapterConfig() {
-	if config.Cfg == nil || len(config.Cfg.ExternalAPM) == 0 {
+	if over_config.Cfg == nil || len(over_config.Cfg.ExternalAPM) == 0 {
 		return
 	}
 	once.Do(func() {
 		service.Register()
 		if len(pipeline) == 0 {
-			pipeline = make([]adapterPipeline, 0, len(config.Cfg.ExternalAPM))
+			pipeline = make([]adapterPipeline, 0, len(over_config.Cfg.ExternalAPM))
 		}
 		// build external trace pipelines
-		for _, apm := range config.Cfg.ExternalAPM {
+		for _, apm := range over_config.Cfg.ExternalAPM {
 			if service.Adapters[apm.Name] == nil {
 				continue
 			}

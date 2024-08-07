@@ -18,13 +18,13 @@ package cache
 
 import (
 	"fmt"
+	"github.com/deepflowio/deepflow/server/querier/over_config"
 	"sort"
 	"sync"
 	"time"
 	"unsafe"
 
 	"github.com/deepflowio/deepflow/server/libs/lru"
-	"github.com/deepflowio/deepflow/server/querier/config"
 	"github.com/prometheus/prometheus/promql"
 	"github.com/prometheus/prometheus/promql/parser"
 )
@@ -75,9 +75,9 @@ type Cacher struct {
 func NewCacher() *Cacher {
 	c := &Cacher{
 		lock:    &sync.RWMutex{},
-		entries: lru.NewCache[string, *item[promql.Result]](config.Cfg.Prometheus.Cache.CacheMaxCount),
+		entries: lru.NewCache[string, *item[promql.Result]](over_config.Cfg.Prometheus.Cache.CacheMaxCount),
 	}
-	go c.startUpCleanCache(config.Cfg.Prometheus.Cache.CacheCleanInterval)
+	go c.startUpCleanCache(over_config.Cfg.Prometheus.Cache.CacheCleanInterval)
 	return c
 }
 
@@ -102,7 +102,7 @@ func (c *Cacher) cleanCache() {
 			continue
 		}
 		size := dataSizeOf(item)
-		if size > config.Cfg.Prometheus.Cache.CacheItemSize {
+		if size > over_config.Cfg.Prometheus.Cache.CacheItemSize {
 			log.Infof("cache item remove: %s, real size: %d", k, size)
 			c.lock.Lock()
 			c.entries.Remove(k)
@@ -125,8 +125,8 @@ func (c *Cacher) Fetch(key string, start, end int64) (r promql.Result, fixedStar
 
 	if entry.vType == parser.ValueTypeNone {
 		select {
-		case <-time.After(time.Duration(config.Cfg.Prometheus.Cache.CacheFirstTimeout) * time.Second):
-			log.Infof("req [%s:%d-%d] wait %d to get cache result", key, start, end, config.Cfg.Prometheus.Cache.CacheFirstTimeout)
+		case <-time.After(time.Duration(over_config.Cfg.Prometheus.Cache.CacheFirstTimeout) * time.Second):
+			log.Infof("req [%s:%d-%d] wait %d to get cache result", key, start, end, over_config.Cfg.Prometheus.Cache.CacheFirstTimeout)
 			return promql.Result{Err: fmt.Errorf("key %s not found", key)}, start, end, false
 		case <-entry.loadCompleted:
 			entry, ok = c.entries.Get(key)
@@ -172,7 +172,7 @@ func (c *Cacher) fetchInstant(entry *item[promql.Result], start, end int64) (r p
 		// only when end == Points.T, can be added (time completely equal)
 		for i := 0; i < samples.Len(); i++ {
 			findEndTimeAt := sort.Search(len(samples[i].Points), func(j int) bool {
-				return samples[i].Points[j].T >= end && samples[i].Points[j].T <= end+int64(config.Cfg.Prometheus.Cache.CacheAllowTimeGap*1e3)
+				return samples[i].Points[j].T >= end && samples[i].Points[j].T <= end+int64(over_config.Cfg.Prometheus.Cache.CacheAllowTimeGap*1e3)
 			})
 			if findEndTimeAt < len(samples[i].Points) {
 				sampleCount++
@@ -210,7 +210,7 @@ func (c *Cacher) validateQueryTs(start, end int64, cacheStart, cacheEnd int64) (
 	}
 
 	if end > cacheEnd {
-		if end-cacheEnd <= int64(config.Cfg.Prometheus.Cache.CacheAllowTimeGap*1e3) {
+		if end-cacheEnd <= int64(over_config.Cfg.Prometheus.Cache.CacheAllowTimeGap*1e3) {
 			return 0, 0
 		} else {
 			return cacheEnd, end

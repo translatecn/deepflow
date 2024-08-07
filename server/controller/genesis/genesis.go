@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 	"net"
 	"os"
 	"sync"
@@ -33,7 +34,6 @@ import (
 	api "github.com/deepflowio/deepflow/message/controller"
 	cloudmodel "github.com/deepflowio/deepflow/server/controller/cloud/model"
 	"github.com/deepflowio/deepflow/server/controller/common"
-	"github.com/deepflowio/deepflow/server/controller/config"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
 	genesiscommon "github.com/deepflowio/deepflow/server/controller/genesis/common"
 	gconfig "github.com/deepflowio/deepflow/server/controller/genesis/config"
@@ -58,26 +58,6 @@ type Genesis struct {
 	kubernetesData   sync.Map
 	prometheusData   sync.Map
 	genesisStatsd    statsd.GenesisStatsd
-}
-
-func NewGenesis(cfg *config.ControllerConfig) *Genesis {
-	var sData atomic.Value
-	sData.Store(GenesisSyncData{})
-	GenesisService = &Genesis{
-		mutex:            sync.RWMutex{},
-		grpcPort:         cfg.GrpcPort,
-		grpcMaxMSGLength: cfg.GrpcMaxMessageLength,
-		listenPort:       cfg.ListenPort,
-		listenNodePort:   cfg.ListenNodePort,
-		cfg:              cfg.GenesisCfg,
-		genesisSyncData:  sData,
-		kubernetesData:   sync.Map{},
-		prometheusData:   sync.Map{},
-		genesisStatsd: statsd.GenesisStatsd{
-			K8SInfoDelay: make(map[string][]float64),
-		},
-	}
-	return GenesisService
 }
 
 func (g *Genesis) Start() {
@@ -118,15 +98,6 @@ func (g *Genesis) GetStatter() statsd.StatsdStatter {
 	return statsd.StatsdStatter{
 		OrgID:   g.statsdORGID,
 		Element: statsd.GetGenesisStatsd(g.genesisStatsd),
-	}
-}
-
-func (g *Genesis) receiveGenesisSyncData(sChan chan GenesisSyncData) {
-	for {
-		select {
-		case s := <-sChan:
-			g.genesisSyncData.Store(s)
-		}
 	}
 }
 
@@ -501,15 +472,6 @@ func (g *Genesis) getServerIPs(orgID int) ([]string, error) {
 	return serverIPs, nil
 }
 
-func (g *Genesis) receiveKubernetesData(kChan chan KubernetesInfo) {
-	for {
-		select {
-		case k := <-kChan:
-			g.kubernetesData.Store(fmt.Sprintf("%d-%s", k.ORGID, k.ClusterID), k)
-		}
-	}
-}
-
 func (g *Genesis) GetKubernetesData(orgID int, clusterID string) (KubernetesInfo, bool) {
 	k8sDataInterface, ok := g.kubernetesData.Load(fmt.Sprintf("%d-%s", orgID, clusterID))
 	if !ok {
@@ -608,15 +570,6 @@ func (g *Genesis) GetKubernetesResponse(orgID int, clusterID string) (map[string
 	return k8sResp, nil
 }
 
-func (g *Genesis) receivePrometheusData(pChan chan PrometheusInfo) {
-	for {
-		select {
-		case p := <-pChan:
-			g.prometheusData.Store(fmt.Sprintf("%d-%s", p.ORGID, p.ClusterID), p)
-		}
-	}
-}
-
 func (g *Genesis) GetPrometheusData(orgID int, clusterID string) (PrometheusInfo, bool) {
 	prometheusDataInterface, ok := g.prometheusData.Load(fmt.Sprintf("%d-%s", orgID, clusterID))
 	if !ok {
@@ -699,4 +652,49 @@ func (g *Genesis) GetPrometheusResponse(orgID int, clusterID string) ([]cloudmod
 	}
 
 	return prometheusInfo.Entries, nil
+}
+
+func NewGenesis(cfg *over_config.ControllerConfig) *Genesis {
+	var sData atomic.Value
+	sData.Store(GenesisSyncData{})
+	GenesisService = &Genesis{
+		mutex:            sync.RWMutex{},
+		grpcPort:         cfg.GrpcPort,
+		grpcMaxMSGLength: cfg.GrpcMaxMessageLength,
+		listenPort:       cfg.ListenPort,
+		listenNodePort:   cfg.ListenNodePort,
+		cfg:              cfg.GenesisCfg,
+		genesisSyncData:  sData,
+		kubernetesData:   sync.Map{},
+		prometheusData:   sync.Map{},
+		genesisStatsd: statsd.GenesisStatsd{
+			K8SInfoDelay: make(map[string][]float64),
+		},
+	}
+	return GenesisService
+}
+func (g *Genesis) receiveKubernetesData(kChan chan KubernetesInfo) {
+	for {
+		select {
+		case k := <-kChan:
+			g.kubernetesData.Store(fmt.Sprintf("%d-%s", k.ORGID, k.ClusterID), k)
+		}
+	}
+}
+
+func (g *Genesis) receiveGenesisSyncData(sChan chan GenesisSyncData) {
+	for {
+		select {
+		case s := <-sChan:
+			g.genesisSyncData.Store(s)
+		}
+	}
+}
+func (g *Genesis) receivePrometheusData(pChan chan PrometheusInfo) {
+	for {
+		select {
+		case p := <-pChan:
+			g.prometheusData.Store(fmt.Sprintf("%d-%s", p.ORGID, p.ClusterID), p)
+		}
+	}
 }

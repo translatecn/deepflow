@@ -22,9 +22,9 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/deepflowio/deepflow/server/controller/db/mysql/common"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql/config"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql/migration"
+	"github.com/deepflowio/deepflow/server/controller/db/mysql/over_common"
 )
 
 var (
@@ -44,7 +44,7 @@ func GetConfig() config.MySqlConfig {
 
 func InitDefaultDB(cfg config.MySqlConfig) error {
 	var err error
-	DefaultDB, err = NewDB(cfg, common.DEFAULT_ORG_ID)
+	DefaultDB, err = NewDB(cfg, over_common.DEFAULT_ORG_ID)
 	if err != nil {
 		return err
 	}
@@ -55,25 +55,6 @@ type DB struct {
 	*gorm.DB
 	ORGID int
 	Name  string
-}
-
-func NewDB(cfg config.MySqlConfig, orgID int) (*DB, error) {
-	var db *gorm.DB
-	var err error
-	copiedCfg := cfg
-	if orgID == common.DEFAULT_ORG_ID {
-		db, err = common.GetSession(copiedCfg)
-	} else {
-		copiedCfg = common.ReplaceConfigDatabaseName(cfg, orgID)
-		db, err = common.GetSession(copiedCfg)
-	}
-	if err != nil {
-		logConfig := copiedCfg
-		logConfig.UserPassword = "******"
-		log.Errorf("failed to create db session: %s, config: %#v", err.Error(), logConfig)
-		return nil, err
-	}
-	return &DB{db, orgID, copiedCfg.Database}, nil
 }
 
 func (d *DB) GetGORMDB() *gorm.DB {
@@ -107,19 +88,10 @@ type DBs struct {
 	orgIDToDB map[int]*DB
 }
 
-func GetDBs() *DBs {
-	dbsOnce.Do(func() {
-		dbs = &DBs{
-			orgIDToDB: make(map[int]*DB),
-		}
-	})
-	return dbs
-}
-
 func (c *DBs) Init(cfg config.MySqlConfig) error {
 	var err error
 	c.cfg = cfg
-	DefaultDB, err = c.NewDBIfNotExists(common.DEFAULT_ORG_ID)
+	DefaultDB, err = c.NewDBIfNotExists(over_common.DEFAULT_ORG_ID)
 	if err != nil {
 		return err
 	}
@@ -137,23 +109,6 @@ func (c *DBs) Init(cfg config.MySqlConfig) error {
 
 func (c *DBs) GetConfig() config.MySqlConfig {
 	return c.cfg
-}
-
-func (c *DBs) NewDBIfNotExists(orgID int) (*DB, error) {
-	if db, ok := c.get(orgID); ok {
-		return db, nil
-	}
-
-	db, err := NewDB(c.cfg, orgID)
-	if err != nil {
-		return nil, err
-	}
-	if err := c.check(db); err != nil {
-		return nil, err
-	}
-
-	c.set(orgID, db)
-	return db, nil
 }
 
 func (c *DBs) All() []*DB {
@@ -190,7 +145,7 @@ func (c *DBs) set(orgID int, db *DB) {
 }
 
 func (c *DBs) check(db *DB) error {
-	if db.ORGID != common.DEFAULT_ORG_ID {
+	if db.ORGID != over_common.DEFAULT_ORG_ID {
 		return nil
 	}
 	var version string
@@ -213,4 +168,48 @@ func (c *DBs) DoOnAllDBs(execFunc func(db *DB) error) error {
 		}
 	}
 	return nil
+}
+func NewDB(cfg config.MySqlConfig, orgID int) (*DB, error) {
+	var db *gorm.DB
+	var err error
+	copiedCfg := cfg
+	if orgID == over_common.DEFAULT_ORG_ID {
+		db, err = over_common.GetSession(copiedCfg)
+	} else {
+		copiedCfg = over_common.ReplaceConfigDatabaseName(cfg, orgID)
+		db, err = over_common.GetSession(copiedCfg)
+	}
+	if err != nil {
+		logConfig := copiedCfg
+		logConfig.UserPassword = "******"
+		log.Errorf("failed to create db session: %s, config: %#v", err.Error(), logConfig)
+		return nil, err
+	}
+	return &DB{db, orgID, copiedCfg.Database}, nil
+}
+
+func GetDBs() *DBs {
+	dbsOnce.Do(func() {
+		dbs = &DBs{
+			orgIDToDB: make(map[int]*DB),
+		}
+	})
+	return dbs
+}
+
+func (c *DBs) NewDBIfNotExists(orgID int) (*DB, error) {
+	if db, ok := c.get(orgID); ok {
+		return db, nil
+	}
+
+	db, err := NewDB(c.cfg, orgID)
+	if err != nil {
+		return nil, err
+	}
+	if err := c.check(db); err != nil {
+		return nil, err
+	}
+
+	c.set(orgID, db)
+	return db, nil
 }

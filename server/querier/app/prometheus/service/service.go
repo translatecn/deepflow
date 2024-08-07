@@ -19,6 +19,7 @@ package service
 import (
 	"bytes"
 	"context"
+	"github.com/deepflowio/deepflow/server/querier/over_config"
 	"time"
 
 	logging "github.com/op/go-logging"
@@ -29,7 +30,6 @@ import (
 	"github.com/deepflowio/deepflow/server/querier/app/prometheus/model"
 	"github.com/deepflowio/deepflow/server/querier/app/prometheus/service/packet_wrapper"
 	"github.com/deepflowio/deepflow/server/querier/common"
-	"github.com/deepflowio/deepflow/server/querier/config"
 )
 
 var log = logging.MustGetLogger("prometheus")
@@ -53,7 +53,7 @@ func NewPrometheusService() *PrometheusService {
 	opts := promql.EngineOpts{
 		Logger:                   newPrometheusLogger(),
 		Reg:                      nil,
-		MaxSamples:               config.Cfg.Prometheus.MaxSamples,
+		MaxSamples:               over_config.Cfg.Prometheus.MaxSamples,
 		LookbackDelta:            defaultLookbackDelta,
 		Timeout:                  100 * time.Second,
 		NoStepSubqueryIntervalFn: func(int64) int64 { return durationMilliseconds(defaultNoStepSubQueryInterval) },

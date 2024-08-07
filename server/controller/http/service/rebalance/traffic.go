@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/deepflowio/deepflow/server/querier/over_config"
 	"io"
 	"math"
 	"net/http"
@@ -36,7 +37,6 @@ import (
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
 	"github.com/deepflowio/deepflow/server/controller/grpc/statsd"
 	"github.com/deepflowio/deepflow/server/controller/model"
-	"github.com/deepflowio/deepflow/server/querier/config"
 )
 
 var log = logging.MustGetLogger("service.rebalance")
@@ -640,7 +640,7 @@ func (q *Query) GetAgentDispatcher(orgDB *mysql.DB, domainPrefix string, dataDur
 	if domainPrefix == "master-" {
 		domainPrefix = ""
 	}
-	queryURL := fmt.Sprintf("http://%sdeepflow-server:%d/v1/query", domainPrefix, config.Cfg.ListenPort)
+	queryURL := fmt.Sprintf("http://%sdeepflow-server:%d/v1/query", domainPrefix, over_config.Cfg.ListenPort)
 	values := url.Values{}
 	db := "deepflow_tenant"
 	now := time.Now()

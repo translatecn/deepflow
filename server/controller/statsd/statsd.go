@@ -18,13 +18,13 @@ package statsd
 
 import (
 	"fmt"
+	"github.com/deepflowio/deepflow/server/controller/statsd/config"
 	"os"
 	"sort"
 	"strconv"
 	"time"
 
 	"github.com/deepflowio/deepflow/server/controller/common"
-	"github.com/deepflowio/deepflow/server/controller/statsd/config"
 	"github.com/deepflowio/deepflow/server/libs/codec"
 	"github.com/deepflowio/deepflow/server/libs/stats"
 	"github.com/deepflowio/deepflow/server/libs/stats/pb"
@@ -39,15 +39,6 @@ type StatsdMonitor struct {
 	enable bool
 	host   string
 	port   int
-}
-
-func NewStatsdMonitor(cfg config.StatsdConfig) {
-	MetaStatsd = &StatsdMonitor{
-		enable: cfg.Enabled,
-		host:   cfg.Host,
-		port:   cfg.Port,
-	}
-	return
 }
 
 func (s *StatsdMonitor) initStatsdClient() error {
@@ -153,4 +144,12 @@ func (s *StatsdMonitor) Send(data *pb.Stats) error {
 		return err
 	}
 	return nil
+}
+func NewStatsdMonitor(cfg config.StatsdConfig) {
+	MetaStatsd = &StatsdMonitor{
+		enable: cfg.Enabled,
+		host:   cfg.Host,
+		port:   cfg.Port,
+	}
+	return
 }

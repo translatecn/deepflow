@@ -17,12 +17,12 @@
 package router
 
 import (
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 
-	"github.com/deepflowio/deepflow/server/controller/config"
 	mysqlcfg "github.com/deepflowio/deepflow/server/controller/db/mysql/config"
 	httpcommon "github.com/deepflowio/deepflow/server/controller/http/common"
 	"github.com/deepflowio/deepflow/server/controller/http/model"
@@ -32,10 +32,10 @@ import (
 
 type ORGData struct {
 	mysqlCfg mysqlcfg.MySqlConfig
-	cfg      *config.ControllerConfig
+	cfg      *over_config.ControllerConfig
 }
 
-func NewDatabase(cfg *config.ControllerConfig) *ORGData {
+func NewDatabase(cfg *over_config.ControllerConfig) *ORGData {
 	return &ORGData{
 		mysqlCfg: cfg.MySqlCfg,
 		cfg:      cfg,

@@ -34,37 +34,39 @@ type Chrony struct {
 }
 
 type Config struct {
-	ListenPort                     string   `default:"20014" yaml:"listen-port"`
-	LogLevel                       string   `default:"info"`
-	TsdbIP                         string   `yaml:"tsdb-ip"`
-	Chrony                         Chrony   `yaml:"chrony"`
-	SelfUpdateUrl                  string   `default:"grpc" yaml:"self-update-url"`
-	RemoteApiTimeout               uint16   `default:"30" yaml:"remote-api-timeout"`
-	TridentTypeForUnkonwVtap       uint16   `default:"0" yaml:"trident-type-for-unkonw-vtap"`
-	PlatformVips                   []string `yaml:"platform-vips"`
-	NodeType                       string   `default:"master" yaml:"node-type"`
-	RegionDomainPrefix             string   `yaml:"region-domain-prefix"`
-	ClearKubernetesTime            int      `default:"600" yaml:"clear-kubernetes-time"`
-	NodeIP                         string
-	VTapCacheRefreshInterval       int  `default:"300" yaml:"vtapcache-refresh-interval"`
-	MetaDataRefreshInterval        int  `default:"60" yaml:"metadata-refresh-interval"`
-	NodeRefreshInterval            int  `default:"60" yaml:"node-refresh-interval"`
-	GPIDRefreshInterval            int  `default:"9" yaml:"gpid-refresh-interval"`
-	VTapAutoRegister               bool `default:"true" yaml:"vtap-auto-register"`
-	DomainAutoRegister             bool `default:"true" yaml:"domain-auto-register"`
-	DefaultTapMode                 int  `yaml:"default-tap-mode"`
+	ListenPort                   string   `default:"20014" yaml:"listen-port"`
+	TsdbIP                       string   `yaml:"tsdb-ip"`
+	Chrony                       Chrony   `yaml:"chrony"`
+	SelfUpdateUrl                string   `default:"grpc" yaml:"self-update-url"`
+	RemoteApiTimeout             uint16   `default:"30" yaml:"remote-api-timeout"`
+	TridentTypeForUnkonwVtap     uint16   `default:"0" yaml:"trident-type-for-unkonw-vtap"`
+	PlatformVips                 []string `yaml:"platform-vips"`
+	NodeType                     string   `default:"master" yaml:"node-type"`
+	RegionDomainPrefix           string   `yaml:"region-domain-prefix"`
+	ClearKubernetesTime          int      `default:"600" yaml:"clear-kubernetes-time"`
+	VTapCacheRefreshInterval     int      `default:"300" yaml:"vtapcache-refresh-interval"`
+	MetaDataRefreshInterval      int      `default:"60" yaml:"metadata-refresh-interval"`
+	NodeRefreshInterval          int      `default:"60" yaml:"node-refresh-interval"`
+	GPIDRefreshInterval          int      `default:"9" yaml:"gpid-refresh-interval"`
+	VTapAutoRegister             bool     `default:"true" yaml:"vtap-auto-register"`
+	DomainAutoRegister           bool     `default:"true" yaml:"domain-auto-register"`
+	DefaultTapMode               int      `yaml:"default-tap-mode"`
+	PlatformDataRefreshDelayTime int      `default:"1" yaml:"platform-data-refresh-delay-time"`
+
+	LogLevel                       string `default:"info"`
 	BillingMethod                  string
-	GrpcPort                       int
-	IngesterPort                   int
 	PodClusterInternalIPToIngester int
 	GrpcMaxMessageLength           int
-	ExportersEnabled               bool
-	PlatformDataRefreshDelayTime   int `default:"1" yaml:"platform-data-refresh-delay-time"`
 	NoTeamIDRefused                bool
 	FPermit                        common.FPermit
 	IngesterAPI                    common.IngesterApi // data source
 	AllAgentConnectToNatIP         bool
 	NoIPOverlapping                bool
+	GrpcPort                       int
+	IngesterPort                   int
+	ExportersEnabled               bool
+
+	NodeIP string
 }
 
 func (c *Config) Convert() {

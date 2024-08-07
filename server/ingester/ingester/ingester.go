@@ -18,6 +18,7 @@ package ingester
 
 import (
 	"fmt"
+	"github.com/deepflowio/deepflow/server/libs/over_logger"
 	"io"
 	"net"
 	"os"
@@ -29,7 +30,6 @@ import (
 	"github.com/deepflowio/deepflow/server/ingester/datasource"
 	"github.com/deepflowio/deepflow/server/ingester/exporters"
 	"github.com/deepflowio/deepflow/server/libs/grpc"
-	"github.com/deepflowio/deepflow/server/libs/logger"
 	"github.com/deepflowio/deepflow/server/libs/pool"
 	"github.com/deepflowio/deepflow/server/libs/receiver"
 	"github.com/deepflowio/deepflow/server/libs/stats"
@@ -70,8 +70,8 @@ func Start(configPath string, shared *servercommon.ControllerIngesterShared) []i
 	cfg := config.Load(configPath)
 	bytes, _ := yaml.Marshal(cfg)
 
-	logger.EnableStdoutLog()
-	logger.EnableFileLog(cfg.LogFile)
+	over_logger.EnableStdoutLog()
+	over_logger.EnableFileLog(cfg.LogFile)
 	logLevel, _ := logging.LogLevel(cfg.LogLevel)
 	logging.SetLevel(logLevel, "")
 

@@ -18,37 +18,18 @@ package common
 
 import (
 	"fmt"
-	"io/ioutil"
-	"time"
-
 	"github.com/deepflowio/deepflow/server/libs/eventapi"
 	"github.com/deepflowio/deepflow/server/libs/queue"
 	"github.com/deepflowio/deepflow/server/libs/tracetree"
-	logging "github.com/op/go-logging"
-	yaml "gopkg.in/yaml.v2"
+	"github.com/op/go-logging"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
+	"time"
 )
 
 var log = logging.MustGetLogger("server_common")
 
 const QUEUE_SIZE = 1 << 16
-
-type ControllerIngesterShared struct {
-	ResourceEventQueue *queue.OverwriteQueue
-	TraceTreeQueue     *queue.OverwriteQueue
-}
-
-func NewControllerIngesterShared() *ControllerIngesterShared {
-	return &ControllerIngesterShared{
-		ResourceEventQueue: queue.NewOverwriteQueue(
-			"controller-to-ingester-resource_event", QUEUE_SIZE,
-			queue.OptionFlushIndicator(time.Second*3),
-			queue.OptionRelease(func(p interface{}) { p.(*eventapi.ResourceEvent).Release() })),
-		TraceTreeQueue: queue.NewOverwriteQueue(
-			"querier-to-ingester-trace_tree", QUEUE_SIZE,
-			queue.OptionFlushIndicator(time.Second*3),
-			queue.OptionRelease(func(p interface{}) { p.(*tracetree.TraceTree).Release() })),
-	}
-}
 
 type Config struct {
 	Ingester IngesterConfig `yaml:"ingester"`
@@ -98,4 +79,22 @@ func DropOrg(orgId uint16) error {
 		return fmt.Errorf("ingesterOrgHander is nil, drop org id %d failed", orgId)
 	}
 	return ingesterOrgHander.DropOrg(orgId)
+}
+
+type ControllerIngesterShared struct {
+	ResourceEventQueue *queue.OverwriteQueue
+	TraceTreeQueue     *queue.OverwriteQueue
+}
+
+func NewControllerIngesterShared() *ControllerIngesterShared {
+	return &ControllerIngesterShared{
+		ResourceEventQueue: queue.NewOverwriteQueue(
+			"controller-to-ingester-resource_event", QUEUE_SIZE,
+			queue.OptionFlushIndicator(time.Second*3),
+			queue.OptionRelease(func(p interface{}) { p.(*eventapi.ResourceEvent).Release() })),
+		TraceTreeQueue: queue.NewOverwriteQueue(
+			"querier-to-ingester-trace_tree", QUEUE_SIZE,
+			queue.OptionFlushIndicator(time.Second*3),
+			queue.OptionRelease(func(p interface{}) { p.(*tracetree.TraceTree).Release() })),
+	}
 }

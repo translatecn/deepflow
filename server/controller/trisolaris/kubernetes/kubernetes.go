@@ -19,6 +19,7 @@ package kubernetes
 import (
 	"errors"
 	"fmt"
+	cconfig "github.com/deepflowio/deepflow/server/controller/over_config"
 	"sync"
 	"time"
 
@@ -29,10 +30,9 @@ import (
 
 	"github.com/deepflowio/deepflow/server/controller/common"
 	. "github.com/deepflowio/deepflow/server/controller/common"
-	cconfig "github.com/deepflowio/deepflow/server/controller/config"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
 	models "github.com/deepflowio/deepflow/server/controller/db/mysql"
-	mysqlcommon "github.com/deepflowio/deepflow/server/controller/db/mysql/common"
+	mysqlcommon "github.com/deepflowio/deepflow/server/controller/db/mysql/over_common"
 	httpcommon "github.com/deepflowio/deepflow/server/controller/http/common"
 	resourceservice "github.com/deepflowio/deepflow/server/controller/http/service/resource"
 	"github.com/deepflowio/deepflow/server/controller/model"

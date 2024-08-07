@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	queriercfg "github.com/deepflowio/deepflow/server/querier/over_config"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -34,7 +35,6 @@ import (
 	prometheuscommon "github.com/deepflowio/deepflow/server/controller/prometheus/common"
 	prometheuscfg "github.com/deepflowio/deepflow/server/controller/prometheus/config"
 	"github.com/deepflowio/deepflow/server/controller/prometheus/encoder"
-	queriercfg "github.com/deepflowio/deepflow/server/querier/config"
 )
 
 var (

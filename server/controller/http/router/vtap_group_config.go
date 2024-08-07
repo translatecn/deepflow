@@ -17,23 +17,23 @@
 package router
 
 import (
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 	"io"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 
 	"github.com/deepflowio/deepflow/server/agent_config"
-	"github.com/deepflowio/deepflow/server/controller/config"
 	"github.com/deepflowio/deepflow/server/controller/http/common"
 	. "github.com/deepflowio/deepflow/server/controller/http/router/common"
 	"github.com/deepflowio/deepflow/server/controller/http/service"
 )
 
 type VTapGroupConfig struct {
-	cfg *config.ControllerConfig
+	cfg *over_config.ControllerConfig
 }
 
-func NewVTapGroupConfig(cfg *config.ControllerConfig) *VTapGroupConfig {
+func NewVTapGroupConfig(cfg *over_config.ControllerConfig) *VTapGroupConfig {
 	return &VTapGroupConfig{
 		cfg: cfg,
 	}
@@ -55,7 +55,7 @@ func (cgc *VTapGroupConfig) RegisterTo(e *gin.Engine) {
 	e.DELETE("/v1/vtap-group-configuration/filter/", deleteVTapGroupConfigByFilter)
 }
 
-func createVTapGroupConfig(cfg *config.ControllerConfig) gin.HandlerFunc {
+func createVTapGroupConfig(cfg *over_config.ControllerConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		vTapGroupConfig := &agent_config.AgentGroupConfig{}
 		err := c.ShouldBindBodyWith(&vTapGroupConfig, binding.JSON)
@@ -69,7 +69,7 @@ func createVTapGroupConfig(cfg *config.ControllerConfig) gin.HandlerFunc {
 	}
 }
 
-func deleteVTapGroupConfig(cfg *config.ControllerConfig) gin.HandlerFunc {
+func deleteVTapGroupConfig(cfg *over_config.ControllerConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		lcuuid := c.Param("lcuuid")
 		data, err := service.NewAgentGroupConfig(common.GetUserInfo(c), cfg).DeleteVTapGroupConfig(common.GetUserInfo(c).ORGID, lcuuid)
@@ -77,7 +77,7 @@ func deleteVTapGroupConfig(cfg *config.ControllerConfig) gin.HandlerFunc {
 	}
 }
 
-func updateVTapGroupConfig(cfg *config.ControllerConfig) gin.HandlerFunc {
+func updateVTapGroupConfig(cfg *over_config.ControllerConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		vTapGroupConfig := &agent_config.AgentGroupConfig{}
 		if err := c.ShouldBindBodyWith(&vTapGroupConfig, binding.JSON); err != nil {
@@ -90,7 +90,7 @@ func updateVTapGroupConfig(cfg *config.ControllerConfig) gin.HandlerFunc {
 	}
 }
 
-func getVTapGroupConfigs(cfg *config.ControllerConfig) gin.HandlerFunc {
+func getVTapGroupConfigs(cfg *over_config.ControllerConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		args := make(map[string]interface{})
 		if value, ok := c.GetQuery("vtap_group_id"); ok {

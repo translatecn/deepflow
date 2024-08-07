@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/deepflowio/deepflow/server/querier/over_config"
 	"strconv"
 	"strings"
 	"time"
@@ -33,7 +34,6 @@ import (
 
 	"github.com/deepflowio/deepflow/server/querier/app/prometheus/cache"
 	"github.com/deepflowio/deepflow/server/querier/common"
-	"github.com/deepflowio/deepflow/server/querier/config"
 	"github.com/deepflowio/deepflow/server/querier/engine/clickhouse"
 )
 
@@ -68,7 +68,7 @@ func (p *prometheusReader) promReaderExecute(ctx context.Context, req *prompb.Re
 
 	// should get cache result immediately
 	// for DeepFlow Native metrics, don't use cache
-	cacheAvailable := config.Cfg.Prometheus.Cache.RemoteReadCache && !strings.Contains(metricName, "__")
+	cacheAvailable := over_config.Cfg.Prometheus.Cache.RemoteReadCache && !strings.Contains(metricName, "__")
 	if cacheAvailable {
 		var hit cache.CacheHit
 		var cacheItem *cache.CacheItem
@@ -82,7 +82,7 @@ func (p *prometheusReader) promReaderExecute(ctx context.Context, req *prompb.Re
 			loadCompleted := cacheItem.GetLoadCompleteSignal()
 
 			select {
-			case <-time.After(time.Duration(config.Cfg.Prometheus.Cache.CacheFirstTimeout) * time.Second):
+			case <-time.After(time.Duration(over_config.Cfg.Prometheus.Cache.CacheFirstTimeout) * time.Second):
 				log.Infof("req [%s:%d-%d] wait 10 seconds to get cache result", metricName, start, end)
 				return response, "", "", 0, errors.New("query timeout, retry to get response! ")
 			case <-loadCompleted:

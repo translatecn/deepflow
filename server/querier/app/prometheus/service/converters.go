@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/deepflowio/deepflow/server/querier/over_config"
 	"reflect"
 	"regexp"
 	"sort"
@@ -34,7 +35,6 @@ import (
 
 	"github.com/deepflowio/deepflow/server/querier/app/prometheus/model"
 	"github.com/deepflowio/deepflow/server/querier/common"
-	"github.com/deepflowio/deepflow/server/querier/config"
 	chCommon "github.com/deepflowio/deepflow/server/querier/engine/clickhouse/common"
 	tagdescription "github.com/deepflowio/deepflow/server/querier/engine/clickhouse/tag"
 	"github.com/deepflowio/deepflow/server/querier/engine/clickhouse/view"
@@ -535,13 +535,13 @@ func (p *prometheusReader) parsePromQLTag(prefixType prefix, db, tag string) (ta
 	if prefixType == prefixTag && !strings.HasPrefix(tag, "tag_") {
 		isDeepFlowTag = true
 	}
-	if prefixType == prefixDeepFlow && strings.HasPrefix(tag, config.Cfg.Prometheus.AutoTaggingPrefix) {
+	if prefixType == prefixDeepFlow && strings.HasPrefix(tag, over_config.Cfg.Prometheus.AutoTaggingPrefix) {
 		isDeepFlowTag = true
 	}
 
 	// `tagAlias` return only when tag is `enum tag` (returns `Enum(tag)` as `_tag_enum`)
 	if isDeepFlowTag {
-		if strings.HasPrefix(tag, config.Cfg.Prometheus.AutoTaggingPrefix) {
+		if strings.HasPrefix(tag, over_config.Cfg.Prometheus.AutoTaggingPrefix) {
 			tagName, tagAlias = parseDeepFlowTag(prefixType, p.convertToQuerierAllowedTagName(removeDeepFlowPrefix(tag)))
 		} else {
 			tagName, tagAlias = parseDeepFlowTag(prefixType, p.convertToQuerierAllowedTagName(tag))
@@ -571,7 +571,7 @@ func parseToQuerierSQL(ctx context.Context, db string, table string, metrics []s
 	if len(groupBy) > 0 {
 		sqlBuilder.WriteString("GROUP BY " + strings.Join(groupBy, ","))
 	}
-	sqlBuilder.WriteString(fmt.Sprintf(" ORDER BY %s LIMIT %s", strings.Join(orderBy, ","), config.Cfg.Prometheus.Limit))
+	sqlBuilder.WriteString(fmt.Sprintf(" ORDER BY %s LIMIT %s", strings.Join(orderBy, ","), over_config.Cfg.Prometheus.Limit))
 	return sqlBuilder.String()
 }
 
@@ -589,7 +589,7 @@ func (p *prometheusReader) respTransToProm(ctx context.Context, metricsName stri
 	if result == nil || len(result.Values) == 0 {
 		return &prompb.ReadResponse{Results: []*prompb.QueryResult{{}}}, nil
 	}
-	cacheEnabled := config.Cfg.Prometheus.Cache.RemoteReadCache && !strings.Contains(metricsName, "__")
+	cacheEnabled := over_config.Cfg.Prometheus.Cache.RemoteReadCache && !strings.Contains(metricsName, "__")
 	log.Debugf("resTransToProm: result length: %d", len(result.Values))
 	columnIndexes := []int{-1, -1, -1, -1, -1, -1, -1}
 	otherTagCount := 0
@@ -674,7 +674,7 @@ func (p *prometheusReader) respTransToProm(ctx context.Context, metricsName stri
 					continue
 				}
 				// ignore replica labels if passed
-				if config.Cfg.Prometheus.ThanosReplicaLabels != nil && common.IsValueInSliceString(k, config.Cfg.Prometheus.ThanosReplicaLabels) {
+				if over_config.Cfg.Prometheus.ThanosReplicaLabels != nil && common.IsValueInSliceString(k, over_config.Cfg.Prometheus.ThanosReplicaLabels) {
 					filterTagMap[k] = ""
 					continue
 				}
@@ -715,7 +715,7 @@ func (p *prometheusReader) respTransToProm(ctx context.Context, metricsName stri
 					continue
 				}
 				// ignore replica labels if passed
-				if config.Cfg.Prometheus.ThanosReplicaLabels != nil && common.IsValueInSliceString(name, config.Cfg.Prometheus.ThanosReplicaLabels) {
+				if over_config.Cfg.Prometheus.ThanosReplicaLabels != nil && common.IsValueInSliceString(name, over_config.Cfg.Prometheus.ThanosReplicaLabels) {
 					continue
 				}
 				filterTagMap[name] = val
@@ -1204,7 +1204,7 @@ func formatEnumTag(tagName string) (string, bool) {
 	enumFile = strings.TrimSuffix(enumFile, "_1")
 	_, exists := tagdescription.TAG_ENUMS[enumFile]
 	if !exists {
-		enumFile = fmt.Sprintf("%s.%s", enumFile, config.Cfg.Language)
+		enumFile = fmt.Sprintf("%s.%s", enumFile, over_config.Cfg.Language)
 		_, exists = tagdescription.TAG_ENUMS[enumFile]
 	}
 	if exists {
@@ -1230,7 +1230,7 @@ func (p *prometheusReader) addExternalTagCache(tag string, originTag string) {
 }
 
 func appendDeepFlowPrefix(tag string) string {
-	return fmt.Sprintf("%s%s", config.Cfg.Prometheus.AutoTaggingPrefix, tag)
+	return fmt.Sprintf("%s%s", over_config.Cfg.Prometheus.AutoTaggingPrefix, tag)
 }
 
 func appendPrometheusPrefix(tag string) string {
@@ -1246,7 +1246,7 @@ func (p *prometheusReader) convertToQuerierAllowedTagName(matcherName string) (t
 }
 
 func removeDeepFlowPrefix(tag string) string {
-	return strings.TrimPrefix(tag, config.Cfg.Prometheus.AutoTaggingPrefix)
+	return strings.TrimPrefix(tag, over_config.Cfg.Prometheus.AutoTaggingPrefix)
 }
 
 func removeTagPrefix(tag string) string {

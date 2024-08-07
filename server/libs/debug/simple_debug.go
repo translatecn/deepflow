@@ -38,15 +38,6 @@ var (
 	simpleHandlers = [MODULE_MAX * 2]CommandSimpleProcess{}
 )
 
-// server端注册简单命令, module值要大于MODULE_MAX, 小于2*MODULE_MAX
-func ServerRegisterSimple(module ModuleId, process CommandSimpleProcess) {
-	simpleHandlers[module] = process
-	if running == false {
-		debugListener()
-		running = true
-	}
-}
-
 // client注册命令
 func ClientRegisterSimple(moduleId ModuleId, module CmdHelper, operates []CmdHelper) *cobra.Command {
 	command := &cobra.Command{
@@ -124,4 +115,13 @@ func CommmandGetResult(mid ModuleId, operate int, arg string) (string, error) {
 		return "", err
 	}
 	return result.String(), nil
+}
+
+// server端注册简单命令, module值要大于MODULE_MAX, 小于2*MODULE_MAX
+func ServerRegisterSimple(module ModuleId, process CommandSimpleProcess) {
+	simpleHandlers[module] = process
+	if running == false {
+		debugListener()
+		running = true
+	}
 }

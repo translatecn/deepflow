@@ -18,9 +18,9 @@ package router
 
 import (
 	"fmt"
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 
 	"github.com/deepflowio/deepflow/server/controller/common"
-	"github.com/deepflowio/deepflow/server/controller/config"
 	"github.com/deepflowio/deepflow/server/controller/election"
 	httpcommon "github.com/deepflowio/deepflow/server/controller/http/common"
 	. "github.com/deepflowio/deepflow/server/controller/http/router/common"
@@ -33,11 +33,11 @@ import (
 )
 
 type Analyzer struct {
-	cfg *config.ControllerConfig
+	cfg *over_config.ControllerConfig
 	ac  *monitor.AnalyzerCheck
 }
 
-func NewAnalyzer(cfg *config.ControllerConfig, ac *monitor.AnalyzerCheck) *Analyzer {
+func NewAnalyzer(cfg *over_config.ControllerConfig, ac *monitor.AnalyzerCheck) *Analyzer {
 	return &Analyzer{cfg: cfg, ac: ac}
 }
 
@@ -85,7 +85,7 @@ func getAnalyzers(c *gin.Context) {
 	JsonResponse(c, data, err)
 }
 
-func updateAnalyzer(m *monitor.AnalyzerCheck, cfg *config.ControllerConfig) gin.HandlerFunc {
+func updateAnalyzer(m *monitor.AnalyzerCheck, cfg *over_config.ControllerConfig) gin.HandlerFunc {
 	return gin.HandlerFunc(func(c *gin.Context) {
 		var err error
 		var analyzerUpdate model.AnalyzerUpdate
@@ -119,7 +119,7 @@ func updateAnalyzer(m *monitor.AnalyzerCheck, cfg *config.ControllerConfig) gin.
 	})
 }
 
-func deleteAnalyzer(m *monitor.AnalyzerCheck, cfg *config.ControllerConfig) gin.HandlerFunc {
+func deleteAnalyzer(m *monitor.AnalyzerCheck, cfg *over_config.ControllerConfig) gin.HandlerFunc {
 	return gin.HandlerFunc(func(c *gin.Context) {
 		// if not master controller，should forward to master controller
 		isMasterController, masterControllerIP, _ := election.IsMasterControllerAndReturnIP()

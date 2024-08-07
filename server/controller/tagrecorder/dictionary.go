@@ -19,6 +19,7 @@ package tagrecorder
 import (
 	"context"
 	"fmt"
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 	"os"
 	"sort"
 	"strings"
@@ -34,10 +35,9 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/deepflowio/deepflow/server/controller/common"
-	"github.com/deepflowio/deepflow/server/controller/config"
 	"github.com/deepflowio/deepflow/server/controller/db/clickhouse"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
-	mysqlCommon "github.com/deepflowio/deepflow/server/controller/db/mysql/common"
+	mysqlCommon "github.com/deepflowio/deepflow/server/controller/db/mysql/over_common"
 )
 
 var (
@@ -46,7 +46,7 @@ var (
 )
 
 type Dictionary struct {
-	cfg config.ControllerConfig
+	cfg over_config.ControllerConfig
 }
 
 func GetDictionary() *Dictionary {
@@ -56,7 +56,7 @@ func GetDictionary() *Dictionary {
 	return dictionary
 }
 
-func (c *Dictionary) Init(cfg config.ControllerConfig) {
+func (c *Dictionary) Init(cfg over_config.ControllerConfig) {
 	c.cfg = cfg
 }
 

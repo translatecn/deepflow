@@ -23,16 +23,16 @@ import (
 	"github.com/op/go-logging"
 	"gorm.io/gorm"
 
-	"github.com/deepflowio/deepflow/server/controller/db/mysql/common"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql/config"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql/migration"
+	"github.com/deepflowio/deepflow/server/controller/db/mysql/over_common"
 )
 
 var log = logging.MustGetLogger("db.mysql")
 var Db *gorm.DB
 
 func InitMySQL(cfg config.MySqlConfig) error {
-	Db, _ = common.GetSession(cfg)
+	Db, _ = over_common.GetSession(cfg)
 	if Db == nil {
 		return errors.New("connect mysql failed")
 	}

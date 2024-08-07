@@ -18,12 +18,12 @@ package trans_prometheus
 
 import (
 	"fmt"
+	"github.com/deepflowio/deepflow/server/querier/over_config"
 	"time"
 
 	logging "github.com/op/go-logging"
 
 	"github.com/deepflowio/deepflow/server/controller/common"
-	"github.com/deepflowio/deepflow/server/querier/config"
 	"github.com/deepflowio/deepflow/server/querier/engine/clickhouse/client"
 )
 
@@ -50,7 +50,7 @@ type AppLabel struct {
 }
 
 func GenerateOrgMap() {
-	getOrgUrl := fmt.Sprintf("http://localhost:%d/v1/orgs/", config.ControllerCfg.ListenPort)
+	getOrgUrl := fmt.Sprintf("http://localhost:%d/v1/orgs/", over_config.ControllerCfg.ListenPort)
 	resp, err := common.CURLPerform("GET", getOrgUrl, nil)
 	if err != nil {
 		log.Warningf("request controller failed: %s, URL: %s", resp, getOrgUrl)
@@ -72,10 +72,10 @@ func GenerateMap(orgID string) (prometheusMap PrometheusMap) {
 	LABEL_NAME_TO_ID := map[string]int{}
 	LABEL_ID_TO_NAME := map[int]string{}
 	chClient := client.Client{
-		Host:     config.Cfg.Clickhouse.Host,
-		Port:     config.Cfg.Clickhouse.Port,
-		UserName: config.Cfg.Clickhouse.User,
-		Password: config.Cfg.Clickhouse.Password,
+		Host:     over_config.Cfg.Clickhouse.Host,
+		Port:     over_config.Cfg.Clickhouse.Port,
+		UserName: over_config.Cfg.Clickhouse.User,
+		Password: over_config.Cfg.Clickhouse.Password,
 		DB:       "flow_tag",
 	}
 	metricNameToIDSql := "SELECT name,id FROM flow_tag.prometheus_metric_name_map"
@@ -138,7 +138,7 @@ func GenerateMap(orgID string) (prometheusMap PrometheusMap) {
 
 func GeneratePrometheusMap() {
 	GenerateOrgMap()
-	interval := time.Duration(config.Cfg.PrometheusCacheUpdateInterval) * time.Second
+	interval := time.Duration(over_config.Cfg.PrometheusCacheUpdateInterval) * time.Second
 	for range time.Tick(interval) {
 		GenerateOrgMap()
 	}

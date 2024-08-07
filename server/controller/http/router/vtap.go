@@ -21,6 +21,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 	"io"
 	"net/url"
 	"reflect"
@@ -31,7 +32,6 @@ import (
 	"github.com/gin-gonic/gin/binding"
 
 	"github.com/deepflowio/deepflow/server/controller/common"
-	"github.com/deepflowio/deepflow/server/controller/config"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
 	"github.com/deepflowio/deepflow/server/controller/election"
 	httpcommon "github.com/deepflowio/deepflow/server/controller/http/common"
@@ -41,10 +41,10 @@ import (
 )
 
 type Vtap struct {
-	cfg *config.ControllerConfig
+	cfg *over_config.ControllerConfig
 }
 
-func NewVtap(cfg *config.ControllerConfig) *Vtap {
+func NewVtap(cfg *over_config.ControllerConfig) *Vtap {
 	return &Vtap{cfg: cfg}
 }
 
@@ -246,7 +246,7 @@ func (v *Vtap) batchDeleteVtap() gin.HandlerFunc {
 	}
 }
 
-func rebalanceVtap(cfg *config.ControllerConfig) gin.HandlerFunc {
+func rebalanceVtap(cfg *over_config.ControllerConfig) gin.HandlerFunc {
 	return gin.HandlerFunc(func(c *gin.Context) {
 		// 如果不是masterController，将请求转发至是masterController
 		isMasterController, masterControllerIP, _ := election.IsMasterControllerAndReturnIP()

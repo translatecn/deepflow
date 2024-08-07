@@ -18,6 +18,8 @@ package querier
 
 import (
 	"fmt"
+	"github.com/deepflowio/deepflow/server/libs/over_logger"
+	"github.com/deepflowio/deepflow/server/querier/over_config"
 	"io"
 	"os"
 	"runtime"
@@ -28,14 +30,12 @@ import (
 	yaml "gopkg.in/yaml.v2"
 
 	servercommon "github.com/deepflowio/deepflow/server/common"
-	"github.com/deepflowio/deepflow/server/libs/logger"
 	"github.com/deepflowio/deepflow/server/libs/stats"
 	distributed_tracing "github.com/deepflowio/deepflow/server/querier/app/distributed_tracing/router"
 	"github.com/deepflowio/deepflow/server/querier/app/distributed_tracing/service/tracemap"
 	prometheus_router "github.com/deepflowio/deepflow/server/querier/app/prometheus/router"
 	tracing_adapter "github.com/deepflowio/deepflow/server/querier/app/tracing-adapter/router"
 	"github.com/deepflowio/deepflow/server/querier/common"
-	"github.com/deepflowio/deepflow/server/querier/config"
 	"github.com/deepflowio/deepflow/server/querier/engine/clickhouse/trans_prometheus"
 	profile_router "github.com/deepflowio/deepflow/server/querier/profile/router"
 	"github.com/deepflowio/deepflow/server/querier/router"
@@ -46,11 +46,11 @@ import (
 var log = logging.MustGetLogger("querier")
 
 func Start(configPath, serverLogFile string, shared *servercommon.ControllerIngesterShared) {
-	ServerCfg := config.DefaultConfig()
+	ServerCfg := over_config.DefaultConfig()
 	ServerCfg.Load(configPath)
-	config.Cfg = &ServerCfg.QuerierConfig
-	config.TraceConfig = &ServerCfg.TraceIdWithIndex
-	config.ControllerCfg = &ServerCfg.ControllerConfig
+	over_config.Cfg = &ServerCfg.QuerierConfig
+	over_config.TraceConfig = &ServerCfg.TraceIdWithIndex
+	over_config.ControllerCfg = &ServerCfg.ControllerConfig
 	cfg := ServerCfg.QuerierConfig
 	bytes, _ := yaml.Marshal(cfg)
 	log.Info("==================== Launching DeepFlow-Server-Querier ====================")
@@ -85,7 +85,7 @@ func Start(configPath, serverLogFile string, shared *servercommon.ControllerInge
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.Use(otelgin.Middleware("gin-web-server"))
-	r.Use(gin.LoggerWithFormatter(logger.GinLogFormat))
+	r.Use(gin.LoggerWithFormatter(over_logger.GinLogFormat))
 	r.Use(StatdHandle())
 	r.Use(ErrHandle())
 	router.QueryRouter(r)

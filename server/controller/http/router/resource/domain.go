@@ -19,6 +19,7 @@ package resource
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 	"io"
 	"net/url"
 	"strconv"
@@ -29,7 +30,6 @@ import (
 	"github.com/op/go-logging"
 	"gopkg.in/yaml.v2"
 
-	"github.com/deepflowio/deepflow/server/controller/config"
 	httpcommon "github.com/deepflowio/deepflow/server/controller/http/common"
 	"github.com/deepflowio/deepflow/server/controller/http/router/common"
 	"github.com/deepflowio/deepflow/server/controller/http/service/resource"
@@ -39,10 +39,10 @@ import (
 var log = logging.MustGetLogger("controller.resource")
 
 type Domain struct {
-	cfg *config.ControllerConfig
+	cfg *over_config.ControllerConfig
 }
 
-func NewDomain(cfg *config.ControllerConfig) *Domain {
+func NewDomain(cfg *over_config.ControllerConfig) *Domain {
 	return &Domain{cfg: cfg}
 }
 
@@ -69,7 +69,7 @@ func (d *Domain) RegisterTo(e *gin.Engine) {
 	e.GET("/v1/domain-additional-resources/advanced/", getDomainAddtionalResourceAdvanced)
 }
 
-func getDomain(cfg *config.ControllerConfig) gin.HandlerFunc {
+func getDomain(cfg *over_config.ControllerConfig) gin.HandlerFunc {
 	return gin.HandlerFunc(func(c *gin.Context) {
 		args := make(map[string]interface{})
 		args["lcuuid"] = c.Param("lcuuid")
@@ -108,7 +108,7 @@ func getDomain(cfg *config.ControllerConfig) gin.HandlerFunc {
 	})
 }
 
-func getDomains(cfg *config.ControllerConfig) gin.HandlerFunc {
+func getDomains(cfg *over_config.ControllerConfig) gin.HandlerFunc {
 	return gin.HandlerFunc(func(c *gin.Context) {
 		args := make(map[string]interface{})
 		if value, ok := c.GetQuery("name"); ok {
@@ -149,7 +149,7 @@ func getDomains(cfg *config.ControllerConfig) gin.HandlerFunc {
 	})
 }
 
-func createDomain(cfg *config.ControllerConfig) gin.HandlerFunc {
+func createDomain(cfg *over_config.ControllerConfig) gin.HandlerFunc {
 	return gin.HandlerFunc(func(c *gin.Context) {
 		var err error
 		var domainCreate model.DomainCreate
@@ -173,7 +173,7 @@ func createDomain(cfg *config.ControllerConfig) gin.HandlerFunc {
 	})
 }
 
-func updateDomain(cfg *config.ControllerConfig) gin.HandlerFunc {
+func updateDomain(cfg *over_config.ControllerConfig) gin.HandlerFunc {
 	return gin.HandlerFunc(func(c *gin.Context) {
 		var err error
 		var domainUpdate model.DomainUpdate
@@ -202,7 +202,7 @@ func updateDomain(cfg *config.ControllerConfig) gin.HandlerFunc {
 	})
 }
 
-func deleteDomainByNameOrUUID(cfg *config.ControllerConfig) gin.HandlerFunc {
+func deleteDomainByNameOrUUID(cfg *over_config.ControllerConfig) gin.HandlerFunc {
 	return gin.HandlerFunc(func(c *gin.Context) {
 		db, err := common.GetContextOrgDB(c)
 		if err != nil {
@@ -216,7 +216,7 @@ func deleteDomainByNameOrUUID(cfg *config.ControllerConfig) gin.HandlerFunc {
 	})
 }
 
-func deleteDomainByName(cfg *config.ControllerConfig) gin.HandlerFunc {
+func deleteDomainByName(cfg *over_config.ControllerConfig) gin.HandlerFunc {
 	return gin.HandlerFunc(func(c *gin.Context) {
 		rawQuery := strings.Split(c.Request.URL.RawQuery, "name=")
 		if len(rawQuery) < 1 {
@@ -240,7 +240,7 @@ func deleteDomainByName(cfg *config.ControllerConfig) gin.HandlerFunc {
 	})
 }
 
-func getSubDomain(cfg *config.ControllerConfig) gin.HandlerFunc {
+func getSubDomain(cfg *over_config.ControllerConfig) gin.HandlerFunc {
 	return gin.HandlerFunc(func(c *gin.Context) {
 		args := make(map[string]interface{})
 		args["lcuuid"] = c.Param("lcuuid")
@@ -279,7 +279,7 @@ func getSubDomain(cfg *config.ControllerConfig) gin.HandlerFunc {
 	})
 }
 
-func getSubDomains(cfg *config.ControllerConfig) gin.HandlerFunc {
+func getSubDomains(cfg *over_config.ControllerConfig) gin.HandlerFunc {
 	return gin.HandlerFunc(func(c *gin.Context) {
 		args := make(map[string]interface{})
 		if value, ok := c.GetQuery("domain"); ok {
@@ -323,7 +323,7 @@ func getSubDomains(cfg *config.ControllerConfig) gin.HandlerFunc {
 	})
 }
 
-func createSubDomain(cfg *config.ControllerConfig) gin.HandlerFunc {
+func createSubDomain(cfg *over_config.ControllerConfig) gin.HandlerFunc {
 	return gin.HandlerFunc(func(c *gin.Context) {
 		var err error
 		var subDomainCreate model.SubDomainCreate
@@ -346,7 +346,7 @@ func createSubDomain(cfg *config.ControllerConfig) gin.HandlerFunc {
 	})
 }
 
-func deleteSubDomain(cfg *config.ControllerConfig) gin.HandlerFunc {
+func deleteSubDomain(cfg *over_config.ControllerConfig) gin.HandlerFunc {
 	return gin.HandlerFunc(func(c *gin.Context) {
 		var err error
 
@@ -362,7 +362,7 @@ func deleteSubDomain(cfg *config.ControllerConfig) gin.HandlerFunc {
 	})
 }
 
-func updateSubDomain(cfg *config.ControllerConfig) gin.HandlerFunc {
+func updateSubDomain(cfg *over_config.ControllerConfig) gin.HandlerFunc {
 	return gin.HandlerFunc(func(c *gin.Context) {
 		var err error
 		var subDomainUpdate model.SubDomainUpdate

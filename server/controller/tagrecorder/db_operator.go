@@ -17,9 +17,9 @@
 package tagrecorder
 
 import (
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 	"gorm.io/gorm/clause"
 
-	"github.com/deepflowio/deepflow/server/controller/config"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
 )
 
@@ -28,11 +28,11 @@ type operator[MT MySQLChModel, KT ChModelKey] interface {
 	add(keys []KT, dbItems []MT, db *mysql.DB)
 	update(oldDBItem MT, updateInfo map[string]interface{}, key KT, db *mysql.DB)
 	delete(keys []KT, dbItems []MT, db *mysql.DB)
-	setConfig(config.ControllerConfig)
+	setConfig(over_config.ControllerConfig)
 }
 
 type operatorComponent[MT MySQLChModel, KT ChModelKey] struct {
-	cfg              config.ControllerConfig
+	cfg              over_config.ControllerConfig
 	resourceTypeName string
 }
 
@@ -42,7 +42,7 @@ func newOperator[MT MySQLChModel, KT ChModelKey](resourceTypeName string) *opera
 	}
 }
 
-func (b *operatorComponent[MT, KT]) setConfig(cfg config.ControllerConfig) {
+func (b *operatorComponent[MT, KT]) setConfig(cfg over_config.ControllerConfig) {
 	b.cfg = cfg
 }
 

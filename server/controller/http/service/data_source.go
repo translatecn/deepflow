@@ -19,6 +19,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 	"sort"
 	"strconv"
 	"strings"
@@ -26,7 +27,6 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/deepflowio/deepflow/server/controller/common"
-	"github.com/deepflowio/deepflow/server/controller/config"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
 	httpcommon "github.com/deepflowio/deepflow/server/controller/http/common"
 	. "github.com/deepflowio/deepflow/server/controller/http/service/common"
@@ -35,13 +35,13 @@ import (
 )
 
 type DataSource struct {
-	cfg *config.ControllerConfig
+	cfg *over_config.ControllerConfig
 
 	resourceAccess *ResourceAccess
 	ipToController map[string]*mysql.Controller
 }
 
-func NewDataSource(userInfo *httpcommon.UserInfo, cfg *config.ControllerConfig) *DataSource {
+func NewDataSource(userInfo *httpcommon.UserInfo, cfg *over_config.ControllerConfig) *DataSource {
 	dataSource := &DataSource{
 		cfg:            cfg,
 		resourceAccess: &ResourceAccess{fpermit: cfg.FPermit, userInfo: userInfo},
@@ -53,7 +53,7 @@ func NewDataSource(userInfo *httpcommon.UserInfo, cfg *config.ControllerConfig) 
 
 func NewDataSourceWithIngesterAPIConfig(userInfo *httpcommon.UserInfo, cfg common.IngesterApi) *DataSource {
 	dataSource := &DataSource{
-		cfg: &config.ControllerConfig{
+		cfg: &over_config.ControllerConfig{
 			IngesterApi: cfg,
 		},
 		resourceAccess: &ResourceAccess{userInfo: userInfo},
@@ -100,7 +100,7 @@ var DEFAULT_DATA_SOURCE_DISPLAY_NAMES = []string{
 	"日志-日志数据",       // application_log.log
 }
 
-func (d *DataSource) GetDataSources(orgID int, filter map[string]interface{}, specCfg *config.Specification) (resp []model.DataSource, err error) {
+func (d *DataSource) GetDataSources(orgID int, filter map[string]interface{}, specCfg *over_config.Specification) (resp []model.DataSource, err error) {
 	dbInfo, err := mysql.GetDB(orgID)
 	if err != nil {
 		return nil, err

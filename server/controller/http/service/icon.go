@@ -18,13 +18,13 @@ package service
 
 import (
 	"fmt"
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 
 	"github.com/bitly/go-simplejson"
 	"github.com/deepflowio/deepflow/server/controller/common"
-	"github.com/deepflowio/deepflow/server/controller/config"
 )
 
-func GetIcon(cfg *config.ControllerConfig) (*simplejson.Json, error) {
+func GetIcon(cfg *over_config.ControllerConfig) (*simplejson.Json, error) {
 	errResponse, _ := simplejson.NewJson([]byte("{}"))
 	if !cfg.DFWebService.Enabled {
 		return errResponse, nil

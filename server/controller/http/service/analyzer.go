@@ -18,12 +18,12 @@ package service
 
 import (
 	"fmt"
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 
 	mapset "github.com/deckarep/golang-set"
 	"github.com/google/uuid"
 
 	"github.com/deepflowio/deepflow/server/controller/common"
-	"github.com/deepflowio/deepflow/server/controller/config"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
 	httpcommon "github.com/deepflowio/deepflow/server/controller/http/common"
 	. "github.com/deepflowio/deepflow/server/controller/http/service/common"
@@ -177,7 +177,7 @@ func GetAnalyzers(orgID int, filter map[string]interface{}) (resp []model.Analyz
 
 func UpdateAnalyzer(
 	orgID int, lcuuid string, analyzerUpdate map[string]interface{},
-	m *monitor.AnalyzerCheck, cfg *config.ControllerConfig,
+	m *monitor.AnalyzerCheck, cfg *over_config.ControllerConfig,
 ) (resp *model.Analyzer, err error) {
 	dbInfo, err := mysql.GetDB(orgID)
 	if err != nil {

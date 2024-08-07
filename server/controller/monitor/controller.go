@@ -18,13 +18,13 @@ package monitor
 
 import (
 	"context"
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 	"sort"
 	"time"
 
 	mapset "github.com/deckarep/golang-set"
 
 	"github.com/deepflowio/deepflow/server/controller/common"
-	"github.com/deepflowio/deepflow/server/controller/config"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
 	"github.com/deepflowio/deepflow/server/controller/model"
 	mconfig "github.com/deepflowio/deepflow/server/controller/monitor/config"
@@ -47,7 +47,7 @@ type ControllerCheck struct {
 	exceptionControllerDict map[string]*dfHostCheck
 }
 
-func NewControllerCheck(cfg *config.ControllerConfig, ctx context.Context) *ControllerCheck {
+func NewControllerCheck(cfg *over_config.ControllerConfig, ctx context.Context) *ControllerCheck {
 	cCtx, cCancel := context.WithCancel(ctx)
 	return &ControllerCheck{
 		cCtx:                    cCtx,

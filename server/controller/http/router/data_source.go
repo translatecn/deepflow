@@ -17,11 +17,11 @@
 package router
 
 import (
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 
 	"github.com/deepflowio/deepflow/server/controller/common"
-	"github.com/deepflowio/deepflow/server/controller/config"
 	httpcommon "github.com/deepflowio/deepflow/server/controller/http/common"
 	. "github.com/deepflowio/deepflow/server/controller/http/router/common"
 	"github.com/deepflowio/deepflow/server/controller/http/service"
@@ -29,10 +29,10 @@ import (
 )
 
 type DataSource struct {
-	cfg *config.ControllerConfig
+	cfg *over_config.ControllerConfig
 }
 
-func NewDataSource(cfg *config.ControllerConfig) *DataSource {
+func NewDataSource(cfg *over_config.ControllerConfig) *DataSource {
 	return &DataSource{cfg: cfg}
 }
 

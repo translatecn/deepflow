@@ -18,6 +18,7 @@ package grpc
 
 import (
 	"context"
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 	"net"
 	"sync"
 
@@ -25,7 +26,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
-	"github.com/deepflowio/deepflow/server/controller/config"
 	"github.com/deepflowio/deepflow/server/controller/grpc/statsd"
 	"github.com/deepflowio/deepflow/server/controller/trisolaris/utils"
 )
@@ -48,7 +48,7 @@ func Add(r interface{}) {
 	register.r = append(register.r, (r).(Registration))
 }
 
-func Run(ctx context.Context, cfg *config.ControllerConfig) {
+func Run(ctx context.Context, cfg *over_config.ControllerConfig) {
 	server := newServer(cfg.GrpcMaxMessageLength)
 	for _, registration := range register.r {
 		registration.Register(server)
@@ -78,7 +78,7 @@ func newServer(maxMsgSize int, opts ...grpc.ServerOption) *grpc.Server {
 	return grpc.NewServer(opts...)
 }
 
-func RunTLS(ctx context.Context, cfg *config.ControllerConfig) {
+func RunTLS(ctx context.Context, cfg *over_config.ControllerConfig) {
 	creds, err := credentials.NewServerTLSFromFile(cfg.AgentSSLKeyFile, cfg.AgentSSLCertFile)
 	if err != nil {
 		log.Errorf("failed to generate credentials %v, key file: %s, cert file: %s", err, cfg.AgentSSLKeyFile, cfg.AgentSSLCertFile)

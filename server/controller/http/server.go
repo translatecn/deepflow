@@ -18,14 +18,14 @@ package http
 
 import (
 	"fmt"
+	"github.com/deepflowio/deepflow/server/controller/over_config"
+	"github.com/deepflowio/deepflow/server/libs/over_logger"
+	"github.com/gin-gonic/gin"
+	"github.com/op/go-logging"
 	"io"
 	"os"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"github.com/op/go-logging"
-
-	"github.com/deepflowio/deepflow/server/controller/config"
 	"github.com/deepflowio/deepflow/server/controller/genesis"
 	"github.com/deepflowio/deepflow/server/controller/http/appender"
 	"github.com/deepflowio/deepflow/server/controller/http/common/registrant"
@@ -34,45 +34,18 @@ import (
 	"github.com/deepflowio/deepflow/server/controller/manager"
 	"github.com/deepflowio/deepflow/server/controller/monitor"
 	trouter "github.com/deepflowio/deepflow/server/controller/trisolaris/server/http"
-	"github.com/deepflowio/deepflow/server/libs/logger"
 )
 
 var log = logging.MustGetLogger("http")
 
 type Server struct {
 	engine           *gin.Engine
-	controllerConfig *config.ControllerConfig
+	controllerConfig *over_config.ControllerConfig
 
 	controllerChecker *monitor.ControllerCheck
 	analyzerChecker   *monitor.AnalyzerCheck
 	manager           *manager.Manager
 	genesis           *genesis.Genesis
-}
-
-func NewServer(logFile string, cfg *config.ControllerConfig) *Server {
-	s := &Server{controllerConfig: cfg}
-
-	ginLogFile, _ := os.OpenFile(logFile, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0644)
-	gin.DefaultWriter = io.MultiWriter(ginLogFile, os.Stdout)
-
-	g := gin.New()
-	g.Use(gin.Recovery())
-	g.Use(gin.LoggerWithFormatter(logger.GinLogFormat))
-	// set custom middleware
-	g.Use(HandleORGIDMiddleware())
-	s.engine = g
-	return s
-}
-
-func (s *Server) Start() {
-	router.NewHealth().RegisterTo(s.engine)
-	go func() {
-		if err := s.engine.Run(fmt.Sprintf(":%d", s.controllerConfig.ListenPort)); err != nil {
-			log.Errorf("startup service failed, err:%v\n", err)
-			time.Sleep(time.Second)
-			os.Exit(0)
-		}
-	}()
 }
 
 func (s *Server) SetControllerChecker(cc *monitor.ControllerCheck) {
@@ -124,4 +97,28 @@ func (s *Server) appendRegistrant() []registrant.Registrant {
 
 	// appends routers supported in CE or EE
 	return append(rs, appender.GetRegistrants(s.controllerConfig)...)
+}
+func NewServer(logFile string, cfg *over_config.ControllerConfig) *Server {
+	s := &Server{controllerConfig: cfg}
+
+	ginLogFile, _ := os.OpenFile(logFile, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0644)
+	gin.DefaultWriter = io.MultiWriter(ginLogFile, os.Stdout)
+
+	g := gin.New()
+	g.Use(gin.Recovery())
+	g.Use(gin.LoggerWithFormatter(over_logger.GinLogFormat))
+	// set custom middleware
+	g.Use(HandleORGIDMiddleware())
+	s.engine = g
+	return s
+}
+func (s *Server) Start() {
+	router.NewHealth().RegisterTo(s.engine)
+	go func() {
+		if err := s.engine.Run(fmt.Sprintf(":%d", s.controllerConfig.ListenPort)); err != nil {
+			log.Errorf("startup service failed, err:%v\n", err)
+			time.Sleep(time.Second)
+			os.Exit(0)
+		}
+	}()
 }

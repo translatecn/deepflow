@@ -38,14 +38,6 @@ type ReportServer struct {
 	ReportData
 }
 
-var serverBranch, serverRevCount, serverCommitID string
-
-func SetServerInfo(branch string, revCount string, commitID string) {
-	serverBranch = branch
-	serverRevCount = revCount
-	serverCommitID = commitID
-}
-
 func NewReportServer(db *gorm.DB) *ReportServer {
 	return &ReportServer{
 		db: db,
@@ -178,4 +170,12 @@ func (r *ReportServer) send() {
 	if err != nil || res.StatusCode != http.StatusOK {
 		log.Error(err, res)
 	}
+}
+
+var serverBranch, serverRevCount, serverCommitID string
+
+func SetServerInfo(branch string, revCount string, commitID string) {
+	serverBranch = branch
+	serverRevCount = revCount
+	serverCommitID = commitID
 }

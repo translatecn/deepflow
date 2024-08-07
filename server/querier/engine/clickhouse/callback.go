@@ -19,6 +19,7 @@ package clickhouse
 import (
 	"errors"
 	"fmt"
+	"github.com/deepflowio/deepflow/server/querier/over_config"
 	"sort"
 	"strconv"
 	"strings"
@@ -27,7 +28,6 @@ import (
 
 	"github.com/deepflowio/deepflow/server/libs/utils"
 	"github.com/deepflowio/deepflow/server/querier/common"
-	"github.com/deepflowio/deepflow/server/querier/config"
 	"github.com/deepflowio/deepflow/server/querier/engine/clickhouse/client"
 	"github.com/deepflowio/deepflow/server/querier/engine/clickhouse/tag"
 	"github.com/deepflowio/deepflow/server/querier/engine/clickhouse/view"
@@ -115,8 +115,8 @@ func TimeFill(args []interface{}) func(result *common.Result) error { // group b
 		}
 		resultNewValues := []interface{}{}
 		timeFillLimit := TIME_FILL_LIMIT_DEFAULT
-		if config.Cfg != nil {
-			timeFillLimit = config.Cfg.TimeFillLimit
+		if over_config.Cfg != nil {
+			timeFillLimit = over_config.Cfg.TimeFillLimit
 		}
 		for i, group := range groups {
 			groupIndexs := []int{}

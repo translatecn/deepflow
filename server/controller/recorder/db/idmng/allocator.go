@@ -72,17 +72,6 @@ func (a *allocator) SetAllocationCountStrict(allocationCountStrict bool) {
 	a.allocationCountStrict = allocationCountStrict
 }
 
-func (a *allocator) Refresh() error {
-	log.Info(a.org.Logf("refresh %s ids pool started", a.resourceType))
-	inUseIDSet, err := a.inUseIDsProvider.load()
-	if err != nil {
-		return err
-	}
-	a.usableIDs = a.generateSortedUsableIDs(a.generateAllIDSet(), inUseIDSet)
-	log.Info(a.org.Logf("refresh %s ids pool (usable ids count: %d) completed", a.resourceType, len(a.usableIDs)))
-	return nil
-}
-
 func (a *allocator) generateAllIDSet() mapset.Set[int] {
 	allIDSet := mapset.NewSet[int]()
 	for i := a.min; i <= a.max; i++ {
@@ -236,4 +225,15 @@ func (a *descIDAllocator) sortSet(ints mapset.Set[int]) []int {
 func (a *descIDAllocator) sort(ints []int) {
 	sort.Ints(ints)
 	sort.Sort(sort.Reverse(sort.IntSlice(ints)))
+}
+
+func (a *allocator) Refresh() error {
+	log.Info(a.org.Logf("refresh %s ids pool started", a.resourceType))
+	inUseIDSet, err := a.inUseIDsProvider.load()
+	if err != nil {
+		return err
+	}
+	a.usableIDs = a.generateSortedUsableIDs(a.generateAllIDSet(), inUseIDSet)
+	log.Info(a.org.Logf("refresh %s ids pool (usable ids count: %d) completed", a.resourceType, len(a.usableIDs)))
+	return nil
 }

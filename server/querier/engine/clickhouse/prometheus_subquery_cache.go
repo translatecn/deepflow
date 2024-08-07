@@ -17,11 +17,11 @@
 package clickhouse
 
 import (
+	"github.com/deepflowio/deepflow/server/querier/over_config"
 	"sync"
 
 	"github.com/deepflowio/deepflow/server/libs/lru"
 	"github.com/deepflowio/deepflow/server/querier/common"
-	"github.com/deepflowio/deepflow/server/querier/config"
 )
 
 var (
@@ -36,7 +36,7 @@ type PrometheusSubqueryCache struct {
 func GetPrometheusSubqueryCache() *PrometheusSubqueryCache {
 	prometheusSubqueryCacheOnce.Do(func() {
 		prometheusSubqueryCacheIns = &PrometheusSubqueryCache{
-			PrometheusSubqueryCache: lru.NewCache[common.EntryKey, common.EntryValue](config.Cfg.MaxPrometheusIdSubqueryLruEntry),
+			PrometheusSubqueryCache: lru.NewCache[common.EntryKey, common.EntryValue](over_config.Cfg.MaxPrometheusIdSubqueryLruEntry),
 		}
 	})
 	return prometheusSubqueryCacheIns

@@ -75,20 +75,6 @@ func newIDManager(cfg RecorderConfig, orgID int) (*IDManager, error) {
 	return mng, nil
 }
 
-func (m *IDManager) Refresh() error {
-	log.Info(m.org.Logf("refresh id pools started"))
-	defer log.Info(m.org.Logf("refresh id pools completed"))
-
-	var result error
-	for _, idPool := range m.resourceTypeToIDPool {
-		err := idPool.refresh()
-		if err != nil {
-			result = err
-		}
-	}
-	return result
-}
-
 func (m *IDManager) AllocateIDs(resourceType string, count int) []int {
 	idPool, ok := m.resourceTypeToIDPool[resourceType]
 	if !ok {
@@ -160,12 +146,6 @@ func (p *IDPool[MT]) check(ids []int) ([]int, error) {
 	return inUseIDs, nil
 }
 
-func (p *IDPool[MT]) refresh() error {
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
-	return p.Refresh()
-}
-
 // 批量分配ID，若ID池中数量不足，分配ID池所有ID；反之分配指定个数ID。
 // 分配的ID中，若已有被实际使用的ID（闭源页面创建使用），排除已使用ID，仅分配剩余部分。
 func (p *IDPool[MT]) allocate(count int) (ids []int, err error) {
@@ -178,4 +158,23 @@ func (p *IDPool[MT]) recycle(ids []int) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 	p.Recycle(ids)
+}
+func (m *IDManager) Refresh() error {
+	log.Info(m.org.Logf("refresh id pools started"))
+	defer log.Info(m.org.Logf("refresh id pools completed"))
+
+	var result error
+	for _, idPool := range m.resourceTypeToIDPool {
+		err := idPool.refresh()
+		if err != nil {
+			result = err
+		}
+	}
+	return result
+}
+
+func (p *IDPool[MT]) refresh() error {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+	return p.Refresh()
 }

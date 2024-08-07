@@ -18,12 +18,12 @@ package router
 
 import (
 	"fmt"
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 
 	"github.com/deepflowio/deepflow/server/controller/common"
-	"github.com/deepflowio/deepflow/server/controller/config"
 	"github.com/deepflowio/deepflow/server/controller/election"
 	httpcommon "github.com/deepflowio/deepflow/server/controller/http/common"
 	. "github.com/deepflowio/deepflow/server/controller/http/router/common"
@@ -33,13 +33,13 @@ import (
 )
 
 type Controller struct {
-	cfg *config.ControllerConfig
+	cfg *over_config.ControllerConfig
 	cc  *monitor.ControllerCheck
 
 	middlewares []gin.HandlerFunc
 }
 
-func NewController(cfg *config.ControllerConfig, cc *monitor.ControllerCheck) *Controller {
+func NewController(cfg *over_config.ControllerConfig, cc *monitor.ControllerCheck) *Controller {
 	return &Controller{cfg: cfg, cc: cc}
 }
 
@@ -96,7 +96,7 @@ func getControllers(c *gin.Context) {
 	JsonResponse(c, data, err)
 }
 
-func updateController(m *monitor.ControllerCheck, cfg *config.ControllerConfig) gin.HandlerFunc {
+func updateController(m *monitor.ControllerCheck, cfg *over_config.ControllerConfig) gin.HandlerFunc {
 	return gin.HandlerFunc(func(c *gin.Context) {
 		var err error
 		var controllerUpdate model.ControllerUpdate
@@ -130,7 +130,7 @@ func updateController(m *monitor.ControllerCheck, cfg *config.ControllerConfig) 
 	})
 }
 
-func deleteController(m *monitor.ControllerCheck, cfg *config.ControllerConfig) gin.HandlerFunc {
+func deleteController(m *monitor.ControllerCheck, cfg *over_config.ControllerConfig) gin.HandlerFunc {
 	return gin.HandlerFunc(func(c *gin.Context) {
 		// if not master controller，should forward to master controller
 		isMasterController, masterControllerIP, _ := election.IsMasterControllerAndReturnIP()

@@ -17,11 +17,11 @@
 package router
 
 import (
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 
-	"github.com/deepflowio/deepflow/server/controller/config"
-	"github.com/deepflowio/deepflow/server/controller/db/mysql/common"
+	"github.com/deepflowio/deepflow/server/controller/db/mysql/over_common"
 	httpcommon "github.com/deepflowio/deepflow/server/controller/http/common"
 	. "github.com/deepflowio/deepflow/server/controller/http/router/common"
 	"github.com/deepflowio/deepflow/server/controller/http/service"
@@ -29,10 +29,10 @@ import (
 )
 
 type VtapGroup struct {
-	cfg *config.ControllerConfig
+	cfg *over_config.ControllerConfig
 }
 
-func NewVtapGroup(cfg *config.ControllerConfig) *VtapGroup {
+func NewVtapGroup(cfg *over_config.ControllerConfig) *VtapGroup {
 	return &VtapGroup{cfg: cfg}
 }
 
@@ -90,7 +90,7 @@ func (v *VtapGroup) createVtapGroup() gin.HandlerFunc {
 			return
 		}
 		if vtapGroupCreate.TeamID == 0 {
-			vtapGroupCreate.TeamID = common.DEFAULT_TEAM_ID
+			vtapGroupCreate.TeamID = over_common.DEFAULT_TEAM_ID
 		}
 
 		agentGroupService := service.NewAgentGroup(httpcommon.GetUserInfo(c), v.cfg)

@@ -19,6 +19,7 @@ package clickhouse
 import (
 	"errors"
 	"fmt"
+	"github.com/deepflowio/deepflow/server/querier/over_config"
 	"math"
 	"net"
 	"strconv"
@@ -27,7 +28,6 @@ import (
 	"golang.org/x/exp/slices"
 
 	"github.com/deepflowio/deepflow/server/querier/common"
-	"github.com/deepflowio/deepflow/server/querier/config"
 	chCommon "github.com/deepflowio/deepflow/server/querier/engine/clickhouse/common"
 	"github.com/deepflowio/deepflow/server/querier/engine/clickhouse/metrics"
 	"github.com/deepflowio/deepflow/server/querier/engine/clickhouse/tag"
@@ -188,7 +188,7 @@ func GetTopKTrans(name string, args []string, alias string, e *CHEngine) (Statem
 		}]
 		if getTagOK {
 			if tagOK {
-				enumFileName := strings.TrimSuffix(tagDescription.EnumFile, "."+config.Cfg.Language)
+				enumFileName := strings.TrimSuffix(tagDescription.EnumFile, "."+over_config.Cfg.Language)
 				dbFields[i] = fmt.Sprintf(tagDes.TagTranslator, enumFileName)
 			} else {
 				dbFields[i] = fmt.Sprintf(tagDes.TagTranslator, tagEnum)
@@ -864,7 +864,7 @@ func (f *TagFunction) Trans(m *view.Model) view.Node {
 
 		if getTagOK {
 			if tagOK {
-				enumFileName := strings.TrimSuffix(tagDescription.EnumFile, "."+config.Cfg.Language)
+				enumFileName := strings.TrimSuffix(tagDescription.EnumFile, "."+over_config.Cfg.Language)
 				tagFilter = fmt.Sprintf(tagDes.TagTranslator, enumFileName)
 			} else {
 				tagFilter = fmt.Sprintf(tagDes.TagTranslator, tagEnum)

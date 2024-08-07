@@ -18,12 +18,12 @@ package controller
 
 import (
 	"context"
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 	"os"
 	"time"
 
 	"github.com/deepflowio/deepflow/server/controller/common"
-	"github.com/deepflowio/deepflow/server/controller/config"
-	"github.com/deepflowio/deepflow/server/controller/db/mysql/migrator"
+	"github.com/deepflowio/deepflow/server/controller/db/mysql/over_migrator"
 	"github.com/deepflowio/deepflow/server/controller/election"
 	"github.com/deepflowio/deepflow/server/controller/http"
 	resoureservice "github.com/deepflowio/deepflow/server/controller/http/service/resource"
@@ -36,44 +36,8 @@ import (
 	tagrecordercheck "github.com/deepflowio/deepflow/server/controller/tagrecorder/check"
 )
 
-func IsMasterRegion(cfg *config.ControllerConfig) bool {
-	if cfg.TrisolarisCfg.NodeType == "master" {
-		return true
-	}
-	return false
-}
-
-// try to check until success
-func IsMasterController(cfg *config.ControllerConfig) bool {
-	if IsMasterRegion(cfg) {
-		for range time.Tick(time.Second * 5) {
-			isMasterController, err := election.IsMasterController()
-			if err == nil {
-				if isMasterController {
-					return true
-				} else {
-					return false
-				}
-			} else {
-				log.Errorf("check whether I am master controller failed: %s", err.Error())
-			}
-		}
-	}
-	return false
-}
-
-// migrate db by master region master controller
-func migrateMySQL(cfg *config.ControllerConfig) {
-	err := migrator.Migrate(cfg.MySqlCfg)
-	if err != nil {
-		log.Errorf("migrate mysql failed: %s", err.Error())
-		time.Sleep(time.Second)
-		os.Exit(0)
-	}
-}
-
 func checkAndStartMasterFunctions(
-	cfg *config.ControllerConfig, ctx context.Context,
+	cfg *over_config.ControllerConfig, ctx context.Context,
 	controllerCheck *monitor.ControllerCheck, analyzerCheck *monitor.AnalyzerCheck,
 ) {
 
@@ -228,5 +192,40 @@ func checkAndStartAllRegionMasterFunctions(ctx context.Context) {
 			}
 		}
 		masterController = newMasterController
+	}
+}
+func IsMasterRegion(cfg *over_config.ControllerConfig) bool {
+	if cfg.TrisolarisCfg.NodeType == "master" {
+		return true
+	}
+	return false
+}
+
+// try to check until success
+func IsMasterController(cfg *over_config.ControllerConfig) bool {
+	if IsMasterRegion(cfg) {
+		for range time.Tick(time.Second * 5) {
+			isMasterController, err := election.IsMasterController()
+			if err == nil {
+				if isMasterController {
+					return true
+				} else {
+					return false
+				}
+			} else {
+				log.Errorf("check whether I am master controller failed: %s", err.Error())
+			}
+		}
+	}
+	return false
+}
+
+// migrate db by master region master controller
+func migrateMySQL(cfg *over_config.ControllerConfig) {
+	err := over_migrator.Migrate(cfg.MySqlCfg)
+	if err != nil {
+		log.Errorf("migrate mysql failed: %s", err.Error())
+		time.Sleep(time.Second)
+		os.Exit(0)
 	}
 }

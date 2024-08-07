@@ -19,6 +19,7 @@ package clickhouse
 import (
 	"errors"
 	"fmt"
+	"github.com/deepflowio/deepflow/server/querier/over_config"
 	"net"
 	"regexp"
 	"strconv"
@@ -30,7 +31,6 @@ import (
 	"github.com/Knetic/govaluate"
 	"github.com/deepflowio/deepflow/server/libs/utils"
 	"github.com/deepflowio/deepflow/server/querier/common"
-	"github.com/deepflowio/deepflow/server/querier/config"
 	"github.com/deepflowio/deepflow/server/querier/engine/clickhouse/client"
 	chCommon "github.com/deepflowio/deepflow/server/querier/engine/clickhouse/common"
 	"github.com/deepflowio/deepflow/server/querier/engine/clickhouse/tag"
@@ -1118,7 +1118,7 @@ func GetRemoteReadFilter(promTag, table, op, value, originFilter string, e *CHEn
 				if ok {
 					filter = cacheFilter.Filter
 					timeout := cacheFilter.Time
-					if time.Since(timeout) < time.Duration(config.Cfg.PrometheusIdSubqueryLruTimeout) {
+					if time.Since(timeout) < time.Duration(over_config.Cfg.PrometheusIdSubqueryLruTimeout) {
 						return filter, nil
 					}
 				}
@@ -1137,10 +1137,10 @@ func GetRemoteReadFilter(promTag, table, op, value, originFilter string, e *CHEn
 					sql = fmt.Sprintf("SELECT label_value_id FROM flow_tag.app_label_live_view WHERE label_name_id=%d and label_value %s %s GROUP BY label_value_id", labelNameID, op, value)
 				}
 				chClient := client.Client{
-					Host:     config.Cfg.Clickhouse.Host,
-					Port:     config.Cfg.Clickhouse.Port,
-					UserName: config.Cfg.Clickhouse.User,
-					Password: config.Cfg.Clickhouse.Password,
+					Host:     over_config.Cfg.Clickhouse.Host,
+					Port:     over_config.Cfg.Clickhouse.Port,
+					UserName: over_config.Cfg.Clickhouse.User,
+					Password: over_config.Cfg.Clickhouse.Password,
 					DB:       "flow_tag",
 				}
 				appLabelRst, err := chClient.DoQuery(&client.QueryParams{Sql: sql, ORGID: e.ORGID})
@@ -1322,7 +1322,7 @@ func (f *WhereFunction) Trans(expr sqlparser.Expr, w *Where, asTagMap map[string
 					opName = "not match"
 				}
 			}
-			enumFileName := strings.TrimSuffix(tagDescription.EnumFile, "."+config.Cfg.Language)
+			enumFileName := strings.TrimSuffix(tagDescription.EnumFile, "."+over_config.Cfg.Language)
 			switch strings.ToLower(expr.(*sqlparser.ComparisonExpr).Operator) {
 			case "=":
 				//when enum function operator is '=' , add 'or tag = xxx'
@@ -1386,7 +1386,7 @@ func (f *WhereFunction) Trans(expr sqlparser.Expr, w *Where, asTagMap map[string
 			return &view.Expr{Value: "(" + whereFilter + ")"}, nil
 		}
 	} else if function == "FastFilter(trace_id)" {
-		traceConfig := config.TraceConfig
+		traceConfig := over_config.TraceConfig
 		TypeIsIncrementalId := traceConfig.Type == chCommon.IndexTypeIncremetalId
 		FormatIsHex := traceConfig.IncrementalIdLocation.Format == chCommon.FormatHex
 		if traceConfig.Disabled {

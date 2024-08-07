@@ -20,10 +20,10 @@ import (
 	"context"
 
 	"github.com/deepflowio/deepflow/server/controller/common"
-	"github.com/deepflowio/deepflow/server/controller/db/redis"
+	"github.com/deepflowio/deepflow/server/controller/db/over_redis"
 )
 
 type ResourceTaskManager interface {
-	Start(context.Context, common.FPermit, redis.Config)
+	Start(context.Context, common.FPermit, over_redis.Config)
 	Stop()
 }

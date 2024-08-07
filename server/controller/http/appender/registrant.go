@@ -17,13 +17,13 @@
 package appender
 
 import (
-	"github.com/deepflowio/deepflow/server/controller/config"
 	"github.com/deepflowio/deepflow/server/controller/http/common/registrant"
 	"github.com/deepflowio/deepflow/server/controller/http/router/configuration"
 	"github.com/deepflowio/deepflow/server/controller/http/router/resource"
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 )
 
-func GetRegistrants(cfg *config.ControllerConfig) []registrant.Registrant {
+func GetRegistrants(cfg *over_config.ControllerConfig) []registrant.Registrant {
 	return []registrant.Registrant{
 		configuration.NewConfiguration(), // TODO delete
 

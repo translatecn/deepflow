@@ -18,8 +18,8 @@ package client
 
 import (
 	"fmt"
+	"github.com/deepflowio/deepflow/server/querier/over_config"
 
-	"github.com/deepflowio/deepflow/server/querier/config"
 	"github.com/google/uuid"
 )
 
@@ -38,7 +38,7 @@ type DebugInfo struct {
 func NewDebug(sql string) *Debug {
 
 	return &Debug{
-		IP:        config.Cfg.Clickhouse.Host,
+		IP:        over_config.Cfg.Clickhouse.Host,
 		Sql:       sql,
 		QueryUUID: uuid.NewString(),
 	}

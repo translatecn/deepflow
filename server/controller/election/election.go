@@ -21,22 +21,22 @@ package election
 import (
 	"context"
 	"fmt"
+	"github.com/deepflowio/deepflow/server/controller/over_config"
+	"github.com/deepflowio/deepflow/server/controller/trisolaris/utils"
+	"k8s.io/apimachinery/pkg/util/wait"
+	clientset "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/leaderelection"
 	"os"
 	"sync"
 	"time"
 
 	logging "github.com/op/go-logging"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/wait"
-	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/tools/leaderelection"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
 
 	"github.com/deepflowio/deepflow/server/controller/common"
-	"github.com/deepflowio/deepflow/server/controller/config"
-	"github.com/deepflowio/deepflow/server/controller/trisolaris/utils"
 	"github.com/deepflowio/deepflow/server/controller/trisolaris/utils/atomicbool"
 )
 
@@ -76,19 +76,27 @@ func (l *LeaderData) GetLeader() string {
 	return name
 }
 
-func (l *LeaderData) setValide() {
-	l.isValide.Set()
-}
-
 func (l *LeaderData) getValide() bool {
 	return l.isValide.IsSet()
 }
 
 var log = logging.MustGetLogger("election")
-var leaderData = &LeaderData{
-	isValide: atomicbool.NewBool(false),
+
+func GetLeader() string {
+	if common.IsStandaloneRunningMode() {
+		// in standalone mode, the local machine is the master node because of all in one deployment
+		return getID()
+	}
+	return leaderData.GetLeader()
 }
 
+func getID() string {
+	return fmt.Sprintf("%s/%s/%s/%s",
+		common.GetNodeName(),
+		common.GetNodeIP(),
+		common.GetPodName(),
+		common.GetPodIP())
+}
 func buildConfig(kubeconfig string) (*rest.Config, error) {
 	if kubeconfig != "" {
 		cfg, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
@@ -103,34 +111,6 @@ func buildConfig(kubeconfig string) (*rest.Config, error) {
 		return nil, err
 	}
 	return cfg, nil
-}
-
-func getID() string {
-	return fmt.Sprintf("%s/%s/%s/%s",
-		common.GetNodeName(),
-		common.GetNodeIP(),
-		common.GetPodName(),
-		common.GetPodIP())
-}
-
-func GetLeader() string {
-	if common.IsStandaloneRunningMode() {
-		// in standalone mode, the local machine is the master node because of all in one deployment
-		return getID()
-	}
-	return leaderData.GetLeader()
-}
-
-func getCurrentLeader(ctx context.Context, lock *resourcelock.LeaseLock) string {
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-	record, _, err := lock.Get(ctx)
-	if err != nil {
-		log.Error(err)
-		return ""
-	}
-
-	return record.HolderIdentity
 }
 
 func checkLeaderValid(ctx context.Context, lock *resourcelock.LeaseLock) {
@@ -171,8 +151,27 @@ func checkLeaderValid(ctx context.Context, lock *resourcelock.LeaseLock) {
 		}
 	}
 }
+func (l *LeaderData) setValide() {
+	l.isValide.Set()
+}
 
-func Start(ctx context.Context, cfg *config.ControllerConfig) {
+var leaderData = &LeaderData{
+	isValide: atomicbool.NewBool(false),
+}
+
+func getCurrentLeader(ctx context.Context, lock *resourcelock.LeaseLock) string {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	record, _, err := lock.Get(ctx)
+	if err != nil {
+		log.Error(err)
+		return ""
+	}
+
+	return record.HolderIdentity
+}
+
+func Start(ctx context.Context, cfg *over_config.ControllerConfig) {
 	kubeconfig := cfg.Kubeconfig
 	electionName := cfg.ElectionName
 	electionNamespace := common.GetNameSpace()

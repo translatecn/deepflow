@@ -18,6 +18,7 @@ package grpc
 
 import (
 	"encoding/binary"
+	"github.com/deepflowio/deepflow/server/libs/over_logger"
 	"net"
 	"sort"
 	"strings"
@@ -27,7 +28,6 @@ import (
 	"github.com/deepflowio/deepflow/server/libs/datatype"
 	"github.com/deepflowio/deepflow/server/libs/hmap/idmap"
 	"github.com/deepflowio/deepflow/server/libs/hmap/lru"
-	"github.com/deepflowio/deepflow/server/libs/logger"
 	"github.com/deepflowio/deepflow/server/libs/policy"
 	api "github.com/deepflowio/deepflow/server/libs/reciter-api"
 	"github.com/deepflowio/deepflow/server/libs/utils"
@@ -58,7 +58,7 @@ type GroupLabeler struct {
 	indexToGroupID []uint16
 }
 
-func NewGroupLabeler(log *logger.PrefixLogger, idMaps []api.GroupIDMap, portFilterLruCap int, moduleName string) *GroupLabeler {
+func NewGroupLabeler(log *over_logger.PrefixLogger, idMaps []api.GroupIDMap, portFilterLruCap int, moduleName string) *GroupLabeler {
 	ipGroupData := make([]*policy.IpGroupData, 0, len(idMaps))
 	internetGroups := make([]uint16, 0, 1)
 	podGroup := make(map[uint16]uint32)
@@ -250,7 +250,7 @@ type portFilter struct {
 	hasAnyProtocol bool
 }
 
-func newPortFilter(log *logger.PrefixLogger, groupIDMaps []api.GroupIDMap, lruCap int, moduleName string) *portFilter {
+func newPortFilter(log *over_logger.PrefixLogger, groupIDMaps []api.GroupIDMap, lruCap int, moduleName string) *portFilter {
 	hasAnyProtocol := false
 	groupProtocolMap := make(map[uint32][]datatype.PortRange)
 	for i, entry := range groupIDMaps {

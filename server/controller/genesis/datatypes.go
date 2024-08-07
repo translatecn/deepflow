@@ -284,6 +284,8 @@ func (g *GenesisSyncTypeOperation[T]) Save() {
 	}
 }
 
+// ----------------------------------------------------------------------------------------
+
 func NewHostPlatformDataOperation(orgID int, dataList []model.GenesisHost) *GenesisSyncTypeOperation[model.GenesisHost] {
 	lastSeen := map[int]map[string]time.Time{}
 	tMap := map[string]time.Time{}

@@ -20,6 +20,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 	"hash/fnv"
 	"reflect"
 	"sort"
@@ -30,7 +31,6 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	"github.com/deepflowio/deepflow/server/controller/config"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
 	"github.com/deepflowio/deepflow/server/controller/tagrecorder"
 )
@@ -49,7 +49,7 @@ func GetSingleton() *TagRecorder {
 	return tagRecorder
 }
 
-func (c *TagRecorder) Init(ctx context.Context, cfg config.ControllerConfig) {
+func (c *TagRecorder) Init(ctx context.Context, cfg over_config.ControllerConfig) {
 	c.cfg = cfg
 	tCtx, tCancel := context.WithCancel(ctx)
 	c.tCtx = tCtx
@@ -59,7 +59,7 @@ func (c *TagRecorder) Init(ctx context.Context, cfg config.ControllerConfig) {
 type TagRecorder struct {
 	tCtx    context.Context
 	tCancel context.CancelFunc
-	cfg     config.ControllerConfig
+	cfg     over_config.ControllerConfig
 }
 
 func (c *TagRecorder) Check() {

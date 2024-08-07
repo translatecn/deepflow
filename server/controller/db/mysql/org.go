@@ -22,46 +22,12 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/deepflowio/deepflow/server/controller/db/mysql/common"
+	"github.com/deepflowio/deepflow/server/controller/db/mysql/over_common"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 const ORG_TABLE = "org"
-
-func GetORGIDs() ([]int, error) {
-	ids := []int{common.DEFAULT_ORG_ID}
-	if oids, err := GetNonDefaultORGIDs(); err != nil {
-		return ids, err
-	} else {
-		ids = append(ids, oids...)
-	}
-	return ids, nil
-}
-
-func GetNonDefaultORGIDs() ([]int, error) {
-	ids := make([]int, 0)
-	var orgTable string
-	err := DefaultDB.Raw(fmt.Sprintf("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='%s' AND TABLE_NAME='%s'", GetConfig().Database, ORG_TABLE)).Scan(&orgTable).Error
-	if err != nil {
-		log.Errorf("failed to check org table: %v", err.Error())
-		return ids, err
-	}
-	if orgTable == "" {
-		return ids, nil
-	}
-
-	var orgs []*Org
-	if err := DefaultDB.Where("org_id != ?", common.DEFAULT_ORG_ID).Find(&orgs).Error; err != nil {
-		log.Errorf("failed to get org ids: %v", err.Error())
-		return ids, err
-	}
-	for _, org := range orgs {
-		ids = append(ids, org.ORGID)
-	}
-	sort.Ints(ids)
-	return ids, nil
-}
 
 func CheckORGNumberAndLog() ([]int, error) {
 	orgIDs, err := GetORGIDs()
@@ -188,4 +154,38 @@ func getTagNameFromTag(tag, prefix string) string {
 // If the tag is `gorm:"column:ip;unique"`, the function returns "ip".
 func GetColumnNameFromTag(tag string) string {
 	return getTagNameFromTag(tag, "column:")
+}
+
+func GetNonDefaultORGIDs() ([]int, error) {
+	ids := make([]int, 0)
+	var orgTable string
+	err := DefaultDB.Raw(fmt.Sprintf("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='%s' AND TABLE_NAME='%s'", GetConfig().Database, ORG_TABLE)).Scan(&orgTable).Error
+	if err != nil {
+		log.Errorf("failed to check org table: %v", err.Error())
+		return ids, err
+	}
+	if orgTable == "" {
+		return ids, nil
+	}
+
+	var orgs []*Org
+	if err := DefaultDB.Where("org_id != ?", over_common.DEFAULT_ORG_ID).Find(&orgs).Error; err != nil {
+		log.Errorf("failed to get org ids: %v", err.Error())
+		return ids, err
+	}
+	for _, org := range orgs {
+		ids = append(ids, org.ORGID)
+	}
+	sort.Ints(ids)
+	return ids, nil
+}
+
+func GetORGIDs() ([]int, error) {
+	ids := []int{over_common.DEFAULT_ORG_ID}
+	if oids, err := GetNonDefaultORGIDs(); err != nil {
+		return ids, err
+	} else {
+		ids = append(ids, oids...)
+	}
+	return ids, nil
 }

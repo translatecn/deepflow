@@ -22,13 +22,13 @@ package main
 import (
 	"flag"
 	"fmt"
+	. "github.com/deepflowio/deepflow/server/libs/over_logger"
 	_ "net/http/pprof"
 	"os"
 	"os/exec"
 	"strings"
 	"time"
 
-	. "github.com/deepflowio/deepflow/server/libs/logger"
 	. "github.com/deepflowio/deepflow/server/libs/xdppacket"
 	. "github.com/deepflowio/deepflow/server/libs/xdppacket/cmd/common"
 	logging "github.com/op/go-logging"

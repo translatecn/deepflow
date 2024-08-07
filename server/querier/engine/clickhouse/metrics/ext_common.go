@@ -19,12 +19,12 @@ package metrics
 import (
 	"context"
 	"fmt"
+	"github.com/deepflowio/deepflow/server/querier/over_config"
 	"strconv"
 	"strings"
 
 	"golang.org/x/exp/slices"
 
-	"github.com/deepflowio/deepflow/server/querier/config"
 	"github.com/deepflowio/deepflow/server/querier/engine/clickhouse/client"
 	"github.com/deepflowio/deepflow/server/querier/engine/clickhouse/common"
 )
@@ -36,14 +36,14 @@ func GetExtMetrics(db, table, where, queryCacheTTL, orgID string, useQueryCache 
 	var err error
 	if slices.Contains([]string{common.DB_NAME_APPLICATION_LOG, common.DB_NAME_EXT_METRICS, common.DB_NAME_DEEPFLOW_ADMIN, common.DB_NAME_DEEPFLOW_TENANT}, db) || (db == "flow_log" && table == "l7_flow_log") {
 		// Avoid UT failures
-		if config.Cfg == nil {
+		if over_config.Cfg == nil {
 			return nil, nil
 		}
 		externalChClient := client.Client{
-			Host:     config.Cfg.Clickhouse.Host,
-			Port:     config.Cfg.Clickhouse.Port,
-			UserName: config.Cfg.Clickhouse.User,
-			Password: config.Cfg.Clickhouse.Password,
+			Host:     over_config.Cfg.Clickhouse.Host,
+			Port:     over_config.Cfg.Clickhouse.Port,
+			UserName: over_config.Cfg.Clickhouse.User,
+			Password: over_config.Cfg.Clickhouse.Password,
 			DB:       "flow_tag",
 			Context:  ctx,
 		}
@@ -85,14 +85,14 @@ func GetPrometheusMetrics(db, table, where, queryCacheTTL, orgID string, useQuer
 	loadMetrics := make(map[string]*Metrics)
 	allMetrics := GetSamplesMetrics()
 	var err error
-	if config.Cfg == nil {
+	if over_config.Cfg == nil {
 		return nil, nil
 	}
 	externalChClient := client.Client{
-		Host:     config.Cfg.Clickhouse.Host,
-		Port:     config.Cfg.Clickhouse.Port,
-		UserName: config.Cfg.Clickhouse.User,
-		Password: config.Cfg.Clickhouse.Password,
+		Host:     over_config.Cfg.Clickhouse.Host,
+		Port:     over_config.Cfg.Clickhouse.Port,
+		UserName: over_config.Cfg.Clickhouse.User,
+		Password: over_config.Cfg.Clickhouse.Password,
 		DB:       "flow_tag",
 		Context:  ctx,
 	}

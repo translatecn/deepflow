@@ -17,18 +17,18 @@
 package router
 
 import (
+	"github.com/deepflowio/deepflow/server/querier/over_config"
 	"github.com/gin-gonic/gin"
 
 	"github.com/deepflowio/deepflow/server/querier/app/prometheus/router/packet_adapter"
 	"github.com/deepflowio/deepflow/server/querier/app/prometheus/service"
-	"github.com/deepflowio/deepflow/server/querier/config"
 )
 
 func PrometheusRouter(e *gin.Engine) {
 	// only one instance during server lifetime
 	prometheusService := service.NewPrometheusService()
 	// Both SetRate and Acquire are expanded by 1000 times, making it suitable for small QPS scenarios.
-	prometheusService.QPSLeakyBucket.Init(uint64(config.Cfg.Prometheus.QPSLimit * 1000))
+	prometheusService.QPSLeakyBucket.Init(uint64(over_config.Cfg.Prometheus.QPSLimit * 1000))
 
 	// api router for prometheus
 	e.POST("/api/v1/prom/read", Limiter(prometheusService.QPSLeakyBucket), promReader(prometheusService))

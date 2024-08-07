@@ -18,11 +18,10 @@ package tagrecorder
 
 import (
 	"context"
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 	"sync"
 
 	logging "github.com/op/go-logging"
-
-	"github.com/deepflowio/deepflow/server/controller/config"
 )
 
 var log = logging.MustGetLogger("tagrecorder")
@@ -49,7 +48,7 @@ type TagRecorder struct {
 	SubscriberManager *SubscriberManager // run in all controllers of all regions
 }
 
-func (c *TagRecorder) Init(ctx context.Context, cfg config.ControllerConfig) {
+func (c *TagRecorder) Init(ctx context.Context, cfg over_config.ControllerConfig) {
 	c.Dictionary.Init(cfg)
 	c.UpdaterManager.Init(ctx, cfg)
 	c.SubscriberManager.Init(cfg)

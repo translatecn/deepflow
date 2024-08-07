@@ -21,13 +21,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/deepflowio/deepflow/server/querier/over_config"
 	"io/ioutil"
 	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
 
-	"github.com/deepflowio/deepflow/server/querier/config"
 	"github.com/deepflowio/deepflow/server/querier/engine/clickhouse/client"
 	logging "github.com/op/go-logging"
 	"github.com/xwb1989/sqlparser"
@@ -204,10 +204,10 @@ func GetDatasourceInterval(db string, table string, name string, orgID string) (
 
 func GetExtTables(db, queryCacheTTL, orgID string, useQueryCache bool, ctx context.Context, DebugInfo *client.DebugInfo) (values []interface{}) {
 	chClient := client.Client{
-		Host:     config.Cfg.Clickhouse.Host,
-		Port:     config.Cfg.Clickhouse.Port,
-		UserName: config.Cfg.Clickhouse.User,
-		Password: config.Cfg.Clickhouse.Password,
+		Host:     over_config.Cfg.Clickhouse.Host,
+		Port:     over_config.Cfg.Clickhouse.Port,
+		UserName: over_config.Cfg.Clickhouse.User,
+		Password: over_config.Cfg.Clickhouse.Password,
 		DB:       db,
 		Context:  ctx,
 	}
@@ -240,10 +240,10 @@ func GetExtTables(db, queryCacheTTL, orgID string, useQueryCache bool, ctx conte
 
 func GetPrometheusTables(db, queryCacheTTL, orgID string, useQueryCache bool, ctx context.Context, DebugInfo *client.DebugInfo) (values []interface{}) {
 	chClient := client.Client{
-		Host:     config.Cfg.Clickhouse.Host,
-		Port:     config.Cfg.Clickhouse.Port,
-		UserName: config.Cfg.Clickhouse.User,
-		Password: config.Cfg.Clickhouse.Password,
+		Host:     over_config.Cfg.Clickhouse.Host,
+		Port:     over_config.Cfg.Clickhouse.Port,
+		UserName: over_config.Cfg.Clickhouse.User,
+		Password: over_config.Cfg.Clickhouse.Password,
 		DB:       db,
 		Context:  ctx,
 	}

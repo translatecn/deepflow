@@ -30,7 +30,7 @@ import (
 
 	"github.com/deepflowio/deepflow/server/controller/common"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
-	mcommon "github.com/deepflowio/deepflow/server/controller/db/mysql/common"
+	mcommon "github.com/deepflowio/deepflow/server/controller/db/mysql/over_common"
 	gcommon "github.com/deepflowio/deepflow/server/controller/genesis/common"
 	"github.com/deepflowio/deepflow/server/controller/genesis/config"
 	"github.com/deepflowio/deepflow/server/controller/model"
@@ -44,19 +44,6 @@ type SyncStorage struct {
 	dirty           bool
 	mutex           sync.Mutex
 	genesisSyncInfo GenesisSyncDataOperation
-}
-
-func NewSyncStorage(cfg config.GenesisConfig, sChan chan GenesisSyncData, ctx context.Context) *SyncStorage {
-	vCtx, vCancel := context.WithCancel(ctx)
-	return &SyncStorage{
-		cfg:             cfg,
-		vCtx:            vCtx,
-		vCancel:         vCancel,
-		channel:         sChan,
-		dirty:           false,
-		mutex:           sync.Mutex{},
-		genesisSyncInfo: GenesisSyncDataOperation{},
-	}
 }
 
 func (s *SyncStorage) Renew(data GenesisSyncDataOperation) {
@@ -241,52 +228,6 @@ func (s *SyncStorage) storeToDatabase() {
 	s.genesisSyncInfo.Networks.Save()
 	s.genesisSyncInfo.Vinterfaces.Save()
 	s.genesisSyncInfo.Processes.Save()
-}
-
-func (s *SyncStorage) refreshDatabase() {
-	ticker := time.NewTicker(time.Duration(s.cfg.AgingTime) * time.Second)
-	defer ticker.Stop()
-
-	for range ticker.C {
-		// clean genesis storage invalid data
-		orgIDs, err := mysql.GetORGIDs()
-		if err != nil {
-			log.Error("get org ids failed")
-			return
-		}
-		nodeIP := os.Getenv(common.NODE_IP_KEY)
-		for _, orgID := range orgIDs {
-			db, err := mysql.GetDB(orgID)
-			if err != nil {
-				log.Errorf("get org id (%d) mysql session failed", orgID)
-				continue
-			}
-			vTaps := []mysql.VTap{}
-			vTapIDs := map[int]bool{}
-			storages := []model.GenesisStorage{}
-			invalidStorages := []model.GenesisStorage{}
-			db.Find(&vTaps)
-			db.Where("node_ip = ?", nodeIP).Find(&storages)
-			for _, v := range vTaps {
-				vTapIDs[v.ID] = false
-			}
-			for _, s := range storages {
-				if _, ok := vTapIDs[int(s.VtapID)]; !ok {
-					invalidStorages = append(invalidStorages, s)
-				}
-			}
-			if len(invalidStorages) > 0 {
-				err := db.Delete(&invalidStorages).Error
-				if err != nil {
-					log.Errorf("node (%s) clean org (%d) genesis storage invalid data failed: %s", nodeIP, orgID, err)
-				} else {
-					log.Infof("node (%s) clean org (%d) genesis storage invalid data success", nodeIP, orgID)
-				}
-			}
-		}
-
-		s.dirty = true
-	}
 }
 
 func (s *SyncStorage) run() {
@@ -567,5 +508,63 @@ func (p *PrometheusStorage) Start() {
 func (p *PrometheusStorage) Stop() {
 	if p.kCancel != nil {
 		p.kCancel()
+	}
+}
+
+func NewSyncStorage(cfg config.GenesisConfig, sChan chan GenesisSyncData, ctx context.Context) *SyncStorage {
+	vCtx, vCancel := context.WithCancel(ctx)
+	return &SyncStorage{
+		cfg:             cfg,
+		vCtx:            vCtx,
+		vCancel:         vCancel,
+		channel:         sChan,
+		dirty:           false,
+		mutex:           sync.Mutex{},
+		genesisSyncInfo: GenesisSyncDataOperation{},
+	}
+}
+func (s *SyncStorage) refreshDatabase() {
+	ticker := time.NewTicker(time.Duration(s.cfg.AgingTime) * time.Second)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		// clean genesis storage invalid data
+		orgIDs, err := mysql.GetORGIDs()
+		if err != nil {
+			log.Error("get org ids failed")
+			return
+		}
+		nodeIP := os.Getenv(common.NODE_IP_KEY)
+		for _, orgID := range orgIDs {
+			db, err := mysql.GetDB(orgID)
+			if err != nil {
+				log.Errorf("get org id (%d) mysql session failed", orgID)
+				continue
+			}
+			vTaps := []mysql.VTap{}
+			vTapIDs := map[int]bool{}
+			storages := []model.GenesisStorage{}
+			invalidStorages := []model.GenesisStorage{}
+			db.Find(&vTaps)
+			db.Where("node_ip = ?", nodeIP).Find(&storages) // node 当前的tags 不在 tag 表里的，需要删除
+			for _, v := range vTaps {
+				vTapIDs[v.ID] = true
+			}
+			for _, s := range storages {
+				if _, ok := vTapIDs[int(s.VtapID)]; !ok {
+					invalidStorages = append(invalidStorages, s)
+				}
+			}
+			if len(invalidStorages) > 0 {
+				err := db.Delete(&invalidStorages).Error
+				if err != nil {
+					log.Errorf("node (%s) clean org (%d) genesis storage invalid data failed: %s", nodeIP, orgID, err)
+				} else {
+					log.Infof("node (%s) clean org (%d) genesis storage invalid data success", nodeIP, orgID)
+				}
+			}
+		}
+
+		s.dirty = true
 	}
 }

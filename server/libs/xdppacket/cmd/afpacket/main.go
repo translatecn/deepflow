@@ -22,6 +22,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	. "github.com/deepflowio/deepflow/server/libs/over_logger"
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
@@ -34,7 +35,6 @@ import (
 	"github.com/google/gopacket/afpacket"
 	logging "github.com/op/go-logging"
 
-	. "github.com/deepflowio/deepflow/server/libs/logger"
 	. "github.com/deepflowio/deepflow/server/libs/xdppacket/cmd/common"
 )
 

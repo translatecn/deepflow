@@ -19,6 +19,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"github.com/deepflowio/deepflow/server/querier/over_config"
 	"strconv"
 	"strings"
 	"time"
@@ -31,7 +32,6 @@ import (
 	ingester_common "github.com/deepflowio/deepflow/server/ingester/profile/common"
 	"github.com/deepflowio/deepflow/server/libs/utils"
 	querier_common "github.com/deepflowio/deepflow/server/querier/common"
-	"github.com/deepflowio/deepflow/server/querier/config"
 	"github.com/deepflowio/deepflow/server/querier/engine/clickhouse"
 	"github.com/deepflowio/deepflow/server/querier/engine/clickhouse/client"
 	"github.com/deepflowio/deepflow/server/querier/profile/common"
@@ -41,7 +41,7 @@ import (
 var log = logging.MustGetLogger("profile")
 var InstanceProfileEventType = []string{"inuse_objects", "alloc_objects", "inuse_space", "alloc_space", "goroutines"}
 
-func Tracing(args model.ProfileTracing, cfg *config.QuerierConfig) (result model.ProfileTree, debug interface{}, err error) {
+func Tracing(args model.ProfileTracing, cfg *over_config.QuerierConfig) (result model.ProfileTree, debug interface{}, err error) {
 	debugs := model.ProfileDebug{}
 	whereSlice := []string{}
 	whereSlice = append(whereSlice, fmt.Sprintf(" time>=%d", args.TimeStart))

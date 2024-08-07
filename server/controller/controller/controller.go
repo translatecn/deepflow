@@ -19,6 +19,7 @@ package controller
 import (
 	"context"
 	"flag"
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 	"os"
 	"strconv"
 	"time"
@@ -28,9 +29,8 @@ import (
 
 	servercommon "github.com/deepflowio/deepflow/server/common"
 	"github.com/deepflowio/deepflow/server/controller/common"
-	"github.com/deepflowio/deepflow/server/controller/config"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
-	"github.com/deepflowio/deepflow/server/controller/db/redis"
+	"github.com/deepflowio/deepflow/server/controller/db/over_redis"
 	"github.com/deepflowio/deepflow/server/controller/election"
 	"github.com/deepflowio/deepflow/server/controller/genesis"
 	"github.com/deepflowio/deepflow/server/controller/grpc"
@@ -60,7 +60,7 @@ func Start(ctx context.Context, configPath, serverLogFile string, shared *server
 	common.InitEnvData()
 	flag.Parse()
 
-	serverCfg := config.DefaultConfig()
+	serverCfg := over_config.DefaultConfig()
 	serverCfg.Load(configPath)
 	cfg := &serverCfg.ControllerConfig
 	bytes, _ := yaml.Marshal(cfg)
@@ -77,13 +77,13 @@ func Start(ctx context.Context, configPath, serverLogFile string, shared *server
 	// start election
 	if common.IsStandaloneRunningMode() == false {
 		// in standalone mode, We have no way to elect because there is no k8s module
-		go election.Start(ctx, cfg)
+		go election.Start(ctx, cfg) // ✅
 	}
 
 	isMasterController := IsMasterController(cfg)
 	if isMasterController {
 		router.SetInitStageForHealthChecker("MySQL migration")
-		migrateMySQL(cfg)
+		migrateMySQL(cfg) // ✅
 	}
 
 	router.SetInitStageForHealthChecker("MySQL init")
@@ -101,10 +101,11 @@ func Start(ctx context.Context, configPath, serverLogFile string, shared *server
 	}
 
 	// 启动资源ID管理器
-	router.SetInitStageForHealthChecker("Resource ID manager init")
+	router.SetInitStageForHealthChecker("Resource ID manager init") // ✅
+
 	recorderResource := recorder.GetResource().Init(ctx, cfg.ManagerCfg.TaskCfg.RecorderCfg)
 	if isMasterController {
-		err := recorderResource.IDManagers.Start(ctx)
+		err := recorderResource.IDManagers.Start(ctx) // todo : skip
 		if err != nil {
 			log.Errorf("resource id manager start failed: %s", err.Error())
 			time.Sleep(time.Second)
@@ -116,7 +117,7 @@ func Start(ctx context.Context, configPath, serverLogFile string, shared *server
 	if cfg.RedisCfg.Enabled && cfg.TrisolarisCfg.NodeType == "master" {
 		router.SetInitStageForHealthChecker("Redis init")
 
-		err := redis.Init(ctx, cfg.RedisCfg)
+		err := over_redis.Init(ctx, cfg.RedisCfg)
 		if err != nil {
 			log.Errorf("connect redis failed: %s", err.Error())
 			time.Sleep(time.Second)
@@ -129,7 +130,7 @@ func Start(ctx context.Context, configPath, serverLogFile string, shared *server
 	statsd.NewStatsdMonitor(cfg.StatsdCfg)
 
 	router.SetInitStageForHealthChecker("Genesis init")
-	// 启动genesis
+	// 启动 genesis
 	g := genesis.NewGenesis(cfg)
 	g.Start()
 
@@ -186,7 +187,7 @@ func Start(ctx context.Context, configPath, serverLogFile string, shared *server
 	}
 }
 
-func grpcStart(ctx context.Context, cfg *config.ControllerConfig) {
+func grpcStart(ctx context.Context, cfg *over_config.ControllerConfig) {
 	go grpc.Run(ctx, cfg)
 	_, err1 := os.Stat(cfg.AgentSSLKeyFile)
 	_, err2 := os.Stat(cfg.AgentSSLCertFile)
@@ -195,7 +196,7 @@ func grpcStart(ctx context.Context, cfg *config.ControllerConfig) {
 	}
 }
 
-func setGlobalConfig(cfg *config.ControllerConfig) {
+func setGlobalConfig(cfg *over_config.ControllerConfig) {
 	grpcPort, err := strconv.Atoi(cfg.GrpcPort)
 	if err != nil {
 		log.Error("config grpc-port is not a port")

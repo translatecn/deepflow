@@ -17,18 +17,18 @@
 package router
 
 import (
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 	"github.com/gin-gonic/gin"
 
-	"github.com/deepflowio/deepflow/server/controller/config"
 	. "github.com/deepflowio/deepflow/server/controller/http/router/common"
 	"github.com/deepflowio/deepflow/server/controller/http/service"
 )
 
 type Icon struct {
-	cfg *config.ControllerConfig
+	cfg *over_config.ControllerConfig
 }
 
-func NewIcon(cfg *config.ControllerConfig) *Icon {
+func NewIcon(cfg *over_config.ControllerConfig) *Icon {
 	return &Icon{cfg: cfg}
 }
 
@@ -36,7 +36,7 @@ func (i *Icon) RegisterTo(e *gin.Engine) {
 	e.GET("/v1/icons/", getIcon(i.cfg))
 }
 
-func getIcon(cfg *config.ControllerConfig) gin.HandlerFunc {
+func getIcon(cfg *over_config.ControllerConfig) gin.HandlerFunc {
 	return gin.HandlerFunc(func(c *gin.Context) {
 		data, err := service.GetIcon(cfg)
 		JsonResponse(c, data, err)

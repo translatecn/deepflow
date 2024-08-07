@@ -19,6 +19,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 	"math"
 	"sort"
 	"strconv"
@@ -28,7 +29,6 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/deepflowio/deepflow/server/controller/common"
-	"github.com/deepflowio/deepflow/server/controller/config"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
 	httpcommon "github.com/deepflowio/deepflow/server/controller/http/common"
 	. "github.com/deepflowio/deepflow/server/controller/http/service/common"
@@ -41,12 +41,12 @@ import (
 )
 
 type Agent struct {
-	cfg *config.ControllerConfig
+	cfg *over_config.ControllerConfig
 
 	resourceAccess *ResourceAccess
 }
 
-func NewAgent(userInfo *httpcommon.UserInfo, cfg *config.ControllerConfig) *Agent {
+func NewAgent(userInfo *httpcommon.UserInfo, cfg *over_config.ControllerConfig) *Agent {
 	return &Agent{
 		cfg:            cfg,
 		resourceAccess: &ResourceAccess{fpermit: cfg.FPermit, userInfo: userInfo},

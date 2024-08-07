@@ -17,21 +17,21 @@
 package router
 
 import (
+	"github.com/deepflowio/deepflow/server/querier/over_config"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 
-	"github.com/deepflowio/deepflow/server/querier/config"
 	"github.com/deepflowio/deepflow/server/querier/profile/common"
 	"github.com/deepflowio/deepflow/server/querier/profile/model"
 	"github.com/deepflowio/deepflow/server/querier/profile/service"
 	"github.com/deepflowio/deepflow/server/querier/router"
 )
 
-func ProfileRouter(e *gin.Engine, cfg *config.QuerierConfig) {
+func ProfileRouter(e *gin.Engine, cfg *over_config.QuerierConfig) {
 	e.POST("/v1/profile/ProfileTracing", profileTracing(cfg))
 }
 
-func profileTracing(cfg *config.QuerierConfig) gin.HandlerFunc {
+func profileTracing(cfg *over_config.QuerierConfig) gin.HandlerFunc {
 	return gin.HandlerFunc(func(c *gin.Context) {
 		var profileTracing model.ProfileTracing
 

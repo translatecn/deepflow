@@ -17,6 +17,7 @@
 package router
 
 import (
+	"github.com/deepflowio/deepflow/server/querier/over_config"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/op/go-logging"
@@ -24,17 +25,16 @@ import (
 	"github.com/deepflowio/deepflow/server/querier/app/distributed_tracing/common"
 	"github.com/deepflowio/deepflow/server/querier/app/distributed_tracing/model"
 	"github.com/deepflowio/deepflow/server/querier/app/distributed_tracing/service/tracemap"
-	"github.com/deepflowio/deepflow/server/querier/config"
 	"github.com/deepflowio/deepflow/server/querier/router"
 )
 
 var log = logging.MustGetLogger("tracemap")
 
-func TraceMapRouter(e *gin.Engine, cfg *config.QuerierConfig, generator *tracemap.TraceMapGenerator) {
+func TraceMapRouter(e *gin.Engine, cfg *over_config.QuerierConfig, generator *tracemap.TraceMapGenerator) {
 	e.POST("/v1/trace_map", traceMap(cfg, generator))
 }
 
-func traceMap(cfg *config.QuerierConfig, generator *tracemap.TraceMapGenerator) gin.HandlerFunc {
+func traceMap(cfg *over_config.QuerierConfig, generator *tracemap.TraceMapGenerator) gin.HandlerFunc {
 	return gin.HandlerFunc(func(c *gin.Context) {
 		var args model.TraceMap
 

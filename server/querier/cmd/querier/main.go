@@ -18,13 +18,13 @@ package main
 
 import (
 	"flag"
+	"github.com/deepflowio/deepflow/server/libs/over_logger"
 	"os"
 	"strings"
 
 	logging "github.com/op/go-logging"
 
 	"github.com/deepflowio/deepflow/server/common"
-	"github.com/deepflowio/deepflow/server/libs/logger"
 	"github.com/deepflowio/deepflow/server/querier/querier"
 )
 
@@ -39,7 +39,7 @@ var log = logging.MustGetLogger(execName())
 
 func main() {
 	if os.Getppid() != 1 {
-		logger.EnableStdoutLog()
+		over_logger.EnableStdoutLog()
 	}
 	shared := common.NewControllerIngesterShared()
 	querier.Start(*configPath, "", shared)

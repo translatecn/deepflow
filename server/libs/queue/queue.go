@@ -66,52 +66,6 @@ func NewOverwriteQueue(name string, size int, options ...Option) *OverwriteQueue
 	return queue
 }
 
-func (q *OverwriteQueue) Init(name string, size int, options ...Option) {
-	if q.size != 0 {
-		return
-	}
-
-	var flushIndicator time.Duration
-	statOptions := []stats.Option{stats.OptionStatTags{"module": name}}
-	var module string
-	for _, option := range options {
-		switch option.(type) {
-		case OptionRelease:
-			q.release = option.(OptionRelease)
-		case OptionFlushIndicator:
-			flushIndicator = option.(OptionFlushIndicator)
-		case OptionModule:
-			module = option.(OptionModule)
-		case OptionStatsOption: // XXX: interface{}类型，必须放在最后
-			statOptions = append(statOptions, option.(OptionStatsOption))
-		default:
-			panic(fmt.Sprintf("Unknown option %v", option))
-		}
-	}
-
-	for i := 0; i < 32; i++ {
-		if 1<<uint(i) >= size {
-			size = 1 << uint(i)
-			break
-		}
-	}
-	q.items = make([]interface{}, size)
-	q.size = uint(size)
-	q.counter = &Counter{}
-	stats.RegisterCountableWithModulePrefix(module, "queue", q, statOptions...)
-
-	if flushIndicator > 0 {
-		go func() {
-			for range time.NewTicker(flushIndicator).C {
-				q.Put(nil)
-				if q.Closed() {
-					break
-				}
-			}
-		}()
-	}
-}
-
 func (q *OverwriteQueue) GetCounter() interface{} {
 	var counter *Counter
 	counter, q.counter = q.counter, &Counter{}
@@ -258,4 +212,49 @@ func (q *OverwriteQueue) Gets(output []interface{}) int { // will block
 	size := q.gets(output)
 	q.Unlock()
 	return int(size)
+}
+func (q *OverwriteQueue) Init(name string, size int, options ...Option) {
+	if q.size != 0 {
+		return
+	}
+
+	var flushIndicator time.Duration
+	statOptions := []stats.Option{stats.OptionStatTags{"module": name}}
+	var module string
+	for _, option := range options {
+		switch option.(type) {
+		case OptionRelease:
+			q.release = option.(OptionRelease)
+		case OptionFlushIndicator:
+			flushIndicator = option.(OptionFlushIndicator)
+		case OptionModule:
+			module = option.(OptionModule)
+		case OptionStatsOption: // XXX: interface{}类型，必须放在最后
+			statOptions = append(statOptions, option.(OptionStatsOption))
+		default:
+			panic(fmt.Sprintf("Unknown option %v", option))
+		}
+	}
+
+	for i := 0; i < 32; i++ { // 找到一个最小的2的幂次方数 ,且>= size
+		if 1<<uint(i) >= size {
+			size = 1 << uint(i)
+			break
+		}
+	}
+	q.items = make([]interface{}, size)
+	q.size = uint(size)
+	q.counter = &Counter{}
+	stats.RegisterCountableWithModulePrefix(module, "queue", q, statOptions...)
+
+	if flushIndicator > 0 {
+		go func() {
+			for range time.NewTicker(flushIndicator).C {
+				q.Put(nil)
+				if q.Closed() {
+					break
+				}
+			}
+		}()
+	}
 }

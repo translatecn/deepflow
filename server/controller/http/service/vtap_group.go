@@ -18,6 +18,7 @@ package service
 
 import (
 	"fmt"
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 	"reflect"
 	"regexp"
 
@@ -27,7 +28,6 @@ import (
 
 	agentconf "github.com/deepflowio/deepflow/server/agent_config"
 	"github.com/deepflowio/deepflow/server/controller/common"
-	"github.com/deepflowio/deepflow/server/controller/config"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
 	httpcommon "github.com/deepflowio/deepflow/server/controller/http/common"
 	. "github.com/deepflowio/deepflow/server/controller/http/service/common"
@@ -40,12 +40,12 @@ const VTAP_GROUP_SHORT_UUID_PREFIX = "g-"
 var vtapGroupShortUUIDRegexp, _ = regexp.Compile(`^g-[A-Za-z0-9]{10}$`)
 
 type AgentGroup struct {
-	cfg *config.ControllerConfig
+	cfg *over_config.ControllerConfig
 
 	resourceAccess *ResourceAccess
 }
 
-func NewAgentGroup(userInfo *httpcommon.UserInfo, cfg *config.ControllerConfig) *AgentGroup {
+func NewAgentGroup(userInfo *httpcommon.UserInfo, cfg *over_config.ControllerConfig) *AgentGroup {
 	return &AgentGroup{
 		cfg:            cfg,
 		resourceAccess: &ResourceAccess{fpermit: cfg.FPermit, userInfo: userInfo},
@@ -251,7 +251,7 @@ func verifyGroupID(db *gorm.DB, groupID string) error {
 	return nil
 }
 
-func (a *AgentGroup) Update(lcuuid string, vtapGroupUpdate map[string]interface{}, cfg *config.ControllerConfig) (resp model.VtapGroup, err error) {
+func (a *AgentGroup) Update(lcuuid string, vtapGroupUpdate map[string]interface{}, cfg *over_config.ControllerConfig) (resp model.VtapGroup, err error) {
 	userInfo := a.resourceAccess.userInfo
 	dbInfo, err := mysql.GetDB(userInfo.ORGID)
 	if err != nil {

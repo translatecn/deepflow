@@ -18,12 +18,12 @@ package service
 
 import (
 	"fmt"
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 
 	mapset "github.com/deckarep/golang-set"
 	"github.com/google/uuid"
 
 	"github.com/deepflowio/deepflow/server/controller/common"
-	"github.com/deepflowio/deepflow/server/controller/config"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
 	httpcommon "github.com/deepflowio/deepflow/server/controller/http/common"
 	. "github.com/deepflowio/deepflow/server/controller/http/service/common"
@@ -216,7 +216,7 @@ func GetControllers(orgID int, filter map[string]string) (resp []model.Controlle
 
 func UpdateController(
 	orgID int, lcuuid string, controllerUpdate map[string]interface{},
-	m *monitor.ControllerCheck, cfg *config.ControllerConfig,
+	m *monitor.ControllerCheck, cfg *over_config.ControllerConfig,
 ) (resp *model.Controller, err error) {
 	dbInfo, err := mysql.GetDB(orgID)
 	if err != nil {

@@ -80,43 +80,6 @@ type StatItem struct {
 	Value interface{}
 }
 
-func registerCountable(modulePrefix, module string, countable Countable, opts ...Option) error {
-	source := StatSource{modulePrefix: modulePrefix, module: module, countable: countable, tags: OptionStatTags{}}
-	for _, opt := range opts {
-		if tags, ok := opt.(OptionStatTags); ok { // 可能有多个
-			for k, v := range tags {
-				source.tags[k] = v
-			}
-		} else if opt, ok := opt.(OptionInterval); ok {
-			source.interval = time.Duration(opt) / TICK_CYCLE * TICK_CYCLE
-			if source.interval > TICK_CYCLE {
-				source.skip = (60 - time.Now().Second()) / int(TICK_CYCLE/time.Second)
-			}
-		}
-	}
-	if source.tags == nil {
-		source.tags = OptionStatTags{}
-	}
-	// if already has tag "host", add tag "_host"
-	if _, ok := source.tags["host"]; ok {
-		source.tags["_host"] = hostname
-	} else {
-		source.tags["host"] = hostname
-	}
-	lock.Lock()
-	statSources.Remove(func(x interface{}) bool {
-		closed := x.(*StatSource).countable.Closed()
-		equal := x.(*StatSource).Equal(&source)
-		if !closed && equal {
-			log.Warningf("Possible memory leak! countable %v is not correctly closed.", &source)
-		}
-		return closed || equal
-	})
-	statSources.PushBack(&source)
-	lock.Unlock()
-	return nil
-}
-
 func counterToFields(counter interface{}) models.Fields {
 	fields := models.Fields{}
 	if items, ok := counter.([]StatItem); ok {
@@ -435,4 +398,41 @@ func init() {
 	processName = strings.Replace(processName, "-", "_", -1)
 
 	go run()
+}
+
+func registerCountable(modulePrefix, module string, countable Countable, opts ...Option) error {
+	source := StatSource{modulePrefix: modulePrefix, module: module, countable: countable, tags: OptionStatTags{}}
+	for _, opt := range opts {
+		if tags, ok := opt.(OptionStatTags); ok { // 可能有多个
+			for k, v := range tags {
+				source.tags[k] = v
+			}
+		} else if opt, ok := opt.(OptionInterval); ok {
+			source.interval = time.Duration(opt) / TICK_CYCLE * TICK_CYCLE
+			if source.interval > TICK_CYCLE {
+				source.skip = (60 - time.Now().Second()) / int(TICK_CYCLE/time.Second)
+			}
+		}
+	}
+	if source.tags == nil {
+		source.tags = OptionStatTags{}
+	}
+	// if already has tag "host", add tag "_host"
+	if _, ok := source.tags["host"]; ok {
+		source.tags["_host"] = hostname
+	} else {
+		source.tags["host"] = hostname
+	}
+	lock.Lock()
+	statSources.Remove(func(x interface{}) bool {
+		closed := x.(*StatSource).countable.Closed()
+		equal := x.(*StatSource).Equal(&source)
+		if !closed && equal {
+			log.Warningf("Possible memory leak! countable %v is not correctly closed.", &source)
+		}
+		return closed || equal
+	})
+	statSources.PushBack(&source)
+	lock.Unlock()
+	return nil
 }

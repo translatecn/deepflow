@@ -17,9 +17,9 @@
 package tagrecorder
 
 import (
-	"github.com/deepflowio/deepflow/server/controller/config"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql/query"
+	"github.com/deepflowio/deepflow/server/controller/over_config"
 )
 
 type ChResourceUpdater interface {
@@ -29,7 +29,7 @@ type ChResourceUpdater interface {
 	// 遍历新的ch数据，若key不在旧的ch数据中，则新增；否则检查是否有更新，若有更新，则更新
 	// 遍历旧的ch数据，若key不在新的ch数据中，则删除
 	// Refresh() bool
-	SetConfig(cfg config.ControllerConfig)
+	SetConfig(cfg over_config.ControllerConfig)
 	SetDB(db *mysql.DB)
 	Check() error
 }
@@ -44,13 +44,13 @@ type DataGenerator[MT MySQLChModel, KT ChModelKey] interface {
 }
 
 type UpdaterBase[MT MySQLChModel, KT ChModelKey] struct {
-	cfg              config.ControllerConfig
+	cfg              over_config.ControllerConfig
 	resourceTypeName string
 	dataGenerator    DataGenerator[MT, KT]
 	db               *mysql.DB // db for multi org
 }
 
-func (b *UpdaterBase[MT, KT]) SetConfig(cfg config.ControllerConfig) {
+func (b *UpdaterBase[MT, KT]) SetConfig(cfg over_config.ControllerConfig) {
 	b.cfg = cfg
 }
 

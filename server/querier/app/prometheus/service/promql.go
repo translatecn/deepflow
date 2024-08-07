@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/deepflowio/deepflow/server/querier/over_config"
 	"math"
 	"strconv"
 	"strings"
@@ -42,7 +43,6 @@ import (
 	"github.com/deepflowio/deepflow/server/libs/lru"
 	"github.com/deepflowio/deepflow/server/querier/app/prometheus/cache"
 	"github.com/deepflowio/deepflow/server/querier/app/prometheus/model"
-	"github.com/deepflowio/deepflow/server/querier/config"
 	chCommon "github.com/deepflowio/deepflow/server/querier/engine/clickhouse/common"
 	tagdescription "github.com/deepflowio/deepflow/server/querier/engine/clickhouse/tag"
 )
@@ -101,7 +101,7 @@ func NewPrometheusExecutor(delta time.Duration) *prometheusExecutor {
 }
 
 func (p *prometheusExecutor) triggerLoadExternalTag() {
-	p.ticker = time.NewTicker(time.Duration(config.Cfg.Prometheus.ExternalTagLoadInterval) * time.Second)
+	p.ticker = time.NewTicker(time.Duration(over_config.Cfg.Prometheus.ExternalTagLoadInterval) * time.Second)
 	defer func() {
 		p.ticker.Stop()
 		if err := recover(); err != nil {
@@ -282,7 +282,7 @@ func (p *prometheusExecutor) offloadRangeQueryExecute(ctx context.Context, args 
 
 	var cached promql.Result
 	var cachedKey string
-	if config.Cfg.Prometheus.Cache.ResponseCache {
+	if over_config.Cfg.Prometheus.Cache.ResponseCache {
 		cachedKey = p.cacheKeyGenerator.GenerateCacheKey(promRequest)
 		var fixedStart, fixedEnd int64
 		queryRequired := true
@@ -358,7 +358,7 @@ func (p *prometheusExecutor) offloadRangeQueryExecute(ctx context.Context, args 
 		result.Stats = queriable.GetSQLQuery()
 	}
 
-	if config.Cfg.Prometheus.Cache.ResponseCache {
+	if over_config.Cfg.Prometheus.Cache.ResponseCache {
 		if mergeResult, err := p.cacher.Merge(cachedKey, promRequest.Start, promRequest.End, promRequest.Step.Microseconds(), *res); err == nil {
 			result.Data = &model.PromQueryData{ResultType: mergeResult.Value.Type(), Result: mergeResult.Value}
 		} else {
@@ -427,7 +427,7 @@ func (p *prometheusExecutor) offloadInstantQueryExecute(ctx context.Context, arg
 	var cached promql.Result
 	var cachedKey string
 
-	if config.Cfg.Prometheus.Cache.ResponseCache {
+	if over_config.Cfg.Prometheus.Cache.ResponseCache {
 		cachedKey = p.cacheKeyGenerator.GenerateCacheKey(promRequest)
 		queryRequired := true
 		if cached, _, _, queryRequired = p.cacher.Fetch(cachedKey, promRequest.Start, promRequest.End); queryRequired {
@@ -504,7 +504,7 @@ func (p *prometheusExecutor) offloadInstantQueryExecute(ctx context.Context, arg
 		result.Stats = queriable.GetSQLQuery()
 	}
 
-	if config.Cfg.Prometheus.Cache.ResponseCache {
+	if over_config.Cfg.Prometheus.Cache.ResponseCache {
 		// instant query merge failed should not influence return result
 		if _, err = p.cacher.Merge(cachedKey, promRequest.Start, promRequest.End, promRequest.Step.Microseconds(), *res); err != nil {
 			log.Errorf("cache merge error: %v", err)
@@ -543,7 +543,7 @@ func (p *prometheusExecutor) promRemoteReadOffloadingExecute(ctx context.Context
 		query:    query.String(),
 	}
 	reader := &prometheusReader{
-		slimit:                  config.Cfg.Prometheus.SeriesLimit,
+		slimit:                  over_config.Cfg.Prometheus.SeriesLimit,
 		orgID:                   orgID,
 		getExternalTagFromCache: p.convertExternalTagToQuerierAllowTag,
 		addExternalTagToCache:   p.addExtraLabelsToCache,
@@ -565,7 +565,7 @@ func (p *prometheusExecutor) promRemoteReadOffloadingExecute(ctx context.Context
 		}
 		return resp, err
 	} else {
-		resp, _, _, _, err = reader.promReaderExecute(ctx, req, config.Cfg.Prometheus.RequestQueryWithDebug)
+		resp, _, _, _, err = reader.promReaderExecute(ctx, req, over_config.Cfg.Prometheus.RequestQueryWithDebug)
 		return resp, err
 	}
 }
@@ -592,12 +592,12 @@ func promMatchersToMatchers(matchers *[]*prompb.LabelMatcher) []*labels.Matcher 
 
 func (p *prometheusExecutor) promRemoteReadExecute(ctx context.Context, req *prompb.ReadRequest, orgID string) (resp *prompb.ReadResponse, err error) {
 	reader := &prometheusReader{
-		slimit:                  config.Cfg.Prometheus.SeriesLimit,
+		slimit:                  over_config.Cfg.Prometheus.SeriesLimit,
 		orgID:                   orgID,
 		getExternalTagFromCache: p.convertExternalTagToQuerierAllowTag,
 		addExternalTagToCache:   p.addExtraLabelsToCache,
 	}
-	result, _, _, _, err := reader.promReaderExecute(ctx, req, config.Cfg.Prometheus.RequestQueryWithDebug)
+	result, _, _, _, err := reader.promReaderExecute(ctx, req, over_config.Cfg.Prometheus.RequestQueryWithDebug)
 	return result, err
 }
 
@@ -687,7 +687,7 @@ func (p *prometheusExecutor) series(ctx context.Context, args *model.PromQueryPa
 		return nil, err
 	}
 	reader := &prometheusReader{
-		slimit:                  config.Cfg.Prometheus.SeriesLimit,
+		slimit:                  over_config.Cfg.Prometheus.SeriesLimit,
 		orgID:                   args.OrgID,
 		blockTeamID:             args.BlockTeamID,
 		getExternalTagFromCache: p.convertExternalTagToQuerierAllowTag,
@@ -841,7 +841,7 @@ func (p *prometheusExecutor) beforePrometheusCalculate(q promql.Query, f func(e 
 }
 
 func (p *prometheusExecutor) getAllOrganizations() []string {
-	getOrgUrl := fmt.Sprintf("http://localhost:%d/v1/orgs/", config.ControllerCfg.ListenPort)
+	getOrgUrl := fmt.Sprintf("http://localhost:%d/v1/orgs/", over_config.ControllerCfg.ListenPort)
 	resp, err := common.CURLPerform("GET", getOrgUrl, nil)
 	if err != nil {
 		log.Errorf("request controller failed: %s, URL: %s", resp, getOrgUrl)
@@ -914,7 +914,7 @@ func (p *prometheusExecutor) addExtraLabelsToCache(orgID string, displayTag stri
 		// avoid concurrency write in p.extraLabelCache map
 		// only when an org query first time
 		p.locker.Lock()
-		p.extraLabelCache[orgID] = lru.NewCache[string, string](config.Cfg.Prometheus.ExternalTagCacheSize)
+		p.extraLabelCache[orgID] = lru.NewCache[string, string](over_config.Cfg.Prometheus.ExternalTagCacheSize)
 		p.locker.Unlock()
 
 		orgExternalLabelCache = p.extraLabelCache[orgID]

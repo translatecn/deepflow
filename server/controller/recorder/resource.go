@@ -34,6 +34,12 @@ type Resource struct {
 	IDManagers *idmng.IDManagers
 }
 
+func (r *Resource) Init(ctx context.Context, cfg config.RecorderConfig) *Resource {
+	r.Cleaners.Init(ctx, cfg)
+	r.IDManagers.Init(ctx, cfg)
+	return r
+}
+
 func GetResource() *Resource {
 	resourceOnce.Do(func() {
 		resource = &Resource{
@@ -42,10 +48,4 @@ func GetResource() *Resource {
 		}
 	})
 	return resource
-}
-
-func (r *Resource) Init(ctx context.Context, cfg config.RecorderConfig) *Resource {
-	r.Cleaners.Init(ctx, cfg)
-	r.IDManagers.Init(ctx, cfg)
-	return r
 }

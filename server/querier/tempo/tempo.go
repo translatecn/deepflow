@@ -21,9 +21,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/deepflowio/deepflow/server/querier/over_config"
 
 	"github.com/deepflowio/deepflow/server/querier/common"
-	"github.com/deepflowio/deepflow/server/querier/config"
 	"github.com/deepflowio/deepflow/server/querier/engine/clickhouse"
 
 	/* "github.com/grafana/tempo/pkg/tempopb"
@@ -77,7 +77,7 @@ var SPAN_KEY_MAP = map[string]string{
 }
 
 func L7TracingRequest(args *common.TempoParams) (map[string]interface{}, error) {
-	url := fmt.Sprintf("http://%s:%s/v1/stats/querier/L7FlowTracing", config.Cfg.DeepflowApp.Host, config.Cfg.DeepflowApp.Port)
+	url := fmt.Sprintf("http://%s:%s/v1/stats/querier/L7FlowTracing", over_config.Cfg.DeepflowApp.Host, over_config.Cfg.DeepflowApp.Port)
 	l7Body := map[string]interface{}{
 		"trace_id":       args.TraceId,
 		"time_start":     args.StartTime,

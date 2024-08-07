@@ -42,7 +42,7 @@ import (
 	"github.com/deepflowio/deepflow/server/controller/cloud/model"
 	"github.com/deepflowio/deepflow/server/controller/common"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
-	mysqlcommon "github.com/deepflowio/deepflow/server/controller/db/mysql/common"
+	mysqlcommon "github.com/deepflowio/deepflow/server/controller/db/mysql/over_common"
 	"github.com/deepflowio/deepflow/server/controller/genesis"
 	controllermodel "github.com/deepflowio/deepflow/server/controller/model"
 )
