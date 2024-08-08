@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package querier
+package over_querier
 
 import (
 	"github.com/deepflowio/deepflow/server/querier/common"

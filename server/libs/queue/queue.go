@@ -89,67 +89,6 @@ func (q *OverwriteQueue) releaseOverwritten(overwritten []interface{}) {
 	}
 }
 
-// 放置单个/多个元素，注意不要超过Size、不能放置空列表
-func (q *OverwriteQueue) Put(items ...interface{}) error {
-	itemSize := uint(len(items))
-	if itemSize > q.size {
-		return OverflowError
-	}
-
-	q.writeLock.Lock()
-
-	freeSize := q.size - q.pending
-	locked := false
-	// q.pending的增长由writeLock保护，q.pending的减少虽然非线程安全，
-	// 但滞后的q.pending的减少反而会倾向于导致进入此分支，因此是安全的
-	if itemSize > freeSize {
-		locked = true
-		q.Lock()
-		freeSize = q.size - q.pending
-		if q.release != nil && itemSize > freeSize { // 需要再次判断确认是否需要释放
-			releaseFrom, releaseTo := q.firstIndex(), q.writeCursor+itemSize
-			if releaseTo > q.size {
-				releaseTo = releaseTo & (q.size - 1)
-			}
-			if releaseFrom <= releaseTo {
-				q.releaseOverwritten(q.items[releaseFrom:releaseTo])
-			} else {
-				q.releaseOverwritten(q.items[releaseFrom:q.size])
-				q.releaseOverwritten(q.items[:releaseTo])
-			}
-		}
-	}
-
-	if copied := copy(q.items[q.writeCursor:], items); uint(copied) != itemSize {
-		copy(q.items, items[copied:])
-	}
-
-	q.counter.In += uint64(itemSize)
-	if itemSize > freeSize {
-		q.counter.Overwritten += uint64(itemSize - freeSize)
-	}
-
-	if !locked {
-		q.Lock()
-	}
-	q.pending = utils.UintMin(q.pending+itemSize, q.size)
-	q.writeCursor = (q.writeCursor + itemSize) & (q.size - 1)
-	if q.readerWaiting > 0 {
-		q.readerWaiting--
-		q.Unlock()
-		q.reader.Done()
-	} else {
-		q.Unlock()
-	}
-
-	if q.counter.Pending < uint64(q.pending) {
-		q.counter.Pending = uint64(q.pending)
-	}
-
-	q.writeLock.Unlock()
-	return nil
-}
-
 func (q *OverwriteQueue) get() interface{} {
 	first := q.firstIndex()
 	item := q.items[first]
@@ -257,4 +196,65 @@ func (q *OverwriteQueue) Init(name string, size int, options ...Option) {
 			}
 		}()
 	}
+}
+
+// 放置单个/多个元素，注意不要超过Size、不能放置空列表
+func (q *OverwriteQueue) Put(items ...interface{}) error {
+	itemSize := uint(len(items))
+	if itemSize > q.size {
+		return OverflowError
+	}
+
+	q.writeLock.Lock()
+
+	freeSize := q.size - q.pending
+	locked := false
+	// q.pending的增长由writeLock保护，q.pending的减少虽然非线程安全，
+	// 但滞后的q.pending的减少反而会倾向于导致进入此分支，因此是安全的
+	if itemSize > freeSize {
+		locked = true
+		q.Lock()
+		freeSize = q.size - q.pending
+		if q.release != nil && itemSize > freeSize { // 需要再次判断确认是否需要释放
+			releaseFrom, releaseTo := q.firstIndex(), q.writeCursor+itemSize
+			if releaseTo > q.size {
+				releaseTo = releaseTo & (q.size - 1)
+			}
+			if releaseFrom <= releaseTo {
+				q.releaseOverwritten(q.items[releaseFrom:releaseTo])
+			} else {
+				q.releaseOverwritten(q.items[releaseFrom:q.size])
+				q.releaseOverwritten(q.items[:releaseTo])
+			}
+		}
+	}
+	// 这是一个环
+	if copied := copy(q.items[q.writeCursor:], items); uint(copied) != itemSize {
+		copy(q.items, items[copied:])
+	}
+
+	q.counter.In += uint64(itemSize)
+	if itemSize > freeSize {
+		q.counter.Overwritten += uint64(itemSize - freeSize)
+	}
+
+	if !locked {
+		q.Lock()
+	}
+	q.pending = utils.UintMin(q.pending+itemSize, q.size)
+	q.writeCursor = (q.writeCursor + itemSize) & (q.size - 1) // 没问题，关键在 -1
+	if q.readerWaiting > 0 {
+		q.readerWaiting--
+		q.Unlock()
+		q.reader.Done()
+	} else {
+		q.Unlock()
+	}
+
+	if q.counter.Pending < uint64(q.pending) {
+		q.counter.Pending = uint64(q.pending)
+	}
+
+	q.writeLock.Unlock()
+	return nil
 }

@@ -94,7 +94,8 @@ controller:
     database: deepflow
     user-name: root
     user-password: root
-    host: 192.168.31.50
+#    host: 192.168.31.50
+    host: 10.230.205.190
     port: 3306
     proxy-host:
     proxy-port:
@@ -118,7 +119,8 @@ controller:
     dimension_resource_database: 2
 #    password: deepflow
     host:
-      - 192.168.31.50
+#      - 192.168.31.50
+      - 10.230.205.190
     port: 6379
     timeout: 30
 

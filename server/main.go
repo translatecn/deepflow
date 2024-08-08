@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"github.com/deepflowio/deepflow/server/common"
 	controller_common "github.com/deepflowio/deepflow/server/controller/common"
+	controller "github.com/deepflowio/deepflow/server/controller/over_controller"
 	"github.com/deepflowio/deepflow/server/libs/over_logger"
 	"io"
 	"os"
@@ -30,21 +31,24 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/deepflowio/deepflow/server/controller/controller"
 	"github.com/deepflowio/deepflow/server/controller/report"
 	"github.com/deepflowio/deepflow/server/controller/trisolaris/utils"
 	"github.com/deepflowio/deepflow/server/ingester/droplet/profiler"
 	"github.com/deepflowio/deepflow/server/ingester/ingester"
 	"github.com/deepflowio/deepflow/server/ingester/ingesterctl"
 	"github.com/deepflowio/deepflow/server/libs/debug"
-	"github.com/deepflowio/deepflow/server/querier/querier"
 
+	"github.com/deepflowio/deepflow/server/querier/over_querier"
 	"github.com/op/go-logging"
 )
 
 func init() {
 	os.Setenv(controller_common.RUNNING_MODE_KEY, "STANDALONE")
-	os.Setenv(controller_common.NODE_IP_KEY, "10.211.55.8")
+	if runtime.GOARCH == "amd64" {
+		os.Setenv(controller_common.NODE_IP_KEY, "192.168.136.129")
+	} else {
+		os.Setenv(controller_common.NODE_IP_KEY, "10.211.55.8")
+	}
 }
 func execName() string {
 	splitted := strings.Split(os.Args[0], "/")
@@ -112,10 +116,9 @@ func main() {
 
 	shared := common.NewControllerIngesterShared()
 
-	//go controller.Start(ctx, *configPath, cfg.LogFile, shared)
-	controller.Start(ctx, *configPath, cfg.LogFile, shared)
+	go controller.Start(ctx, *configPath, cfg.LogFile, shared)
 
-	go querier.Start(*configPath, cfg.LogFile, shared)
+	go over_querier.Start(*configPath, cfg.LogFile, shared)
 	closers := ingester.Start(*configPath, shared)
 
 	common.NewMonitor(cfg.MonitorPaths)

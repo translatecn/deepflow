@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controller
+package over_controller
 
 import (
 	"context"
@@ -48,8 +48,8 @@ import (
 	"github.com/deepflowio/deepflow/server/controller/trisolaris"
 	_ "github.com/deepflowio/deepflow/server/controller/trisolaris/services/grpc/debug"
 	_ "github.com/deepflowio/deepflow/server/controller/trisolaris/services/grpc/healthcheck"
-	_ "github.com/deepflowio/deepflow/server/controller/trisolaris/services/http/cache"
-	_ "github.com/deepflowio/deepflow/server/controller/trisolaris/services/http/upgrade"
+	_ "github.com/deepflowio/deepflow/server/controller/trisolaris/services/over_http/cache"
+	_ "github.com/deepflowio/deepflow/server/controller/trisolaris/services/over_http/upgrade"
 )
 
 var log = logging.MustGetLogger("controller")
@@ -187,15 +187,6 @@ func Start(ctx context.Context, configPath, serverLogFile string, shared *server
 	}
 }
 
-func grpcStart(ctx context.Context, cfg *over_config.ControllerConfig) {
-	go grpc.Run(ctx, cfg)
-	_, err1 := os.Stat(cfg.AgentSSLKeyFile)
-	_, err2 := os.Stat(cfg.AgentSSLCertFile)
-	if err1 == nil && err2 == nil {
-		go grpc.RunTLS(ctx, cfg)
-	}
-}
-
 func setGlobalConfig(cfg *over_config.ControllerConfig) {
 	grpcPort, err := strconv.Atoi(cfg.GrpcPort)
 	if err != nil {
@@ -214,5 +205,13 @@ func setGlobalConfig(cfg *over_config.ControllerConfig) {
 		HTTPNodePort: cfg.ListenNodePort,
 		GRPCPort:     grpcPort,
 		GRPCNodePort: grpcNodePort,
+	}
+}
+func grpcStart(ctx context.Context, cfg *over_config.ControllerConfig) {
+	go grpc.Run(ctx, cfg)
+	_, err1 := os.Stat(cfg.AgentSSLKeyFile)
+	_, err2 := os.Stat(cfg.AgentSSLCertFile)
+	if err1 == nil && err2 == nil {
+		go grpc.RunTLS(ctx, cfg)
 	}
 }

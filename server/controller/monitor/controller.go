@@ -36,31 +36,6 @@ type dbAndIP struct {
 	ip string
 }
 
-type ControllerCheck struct {
-	cCtx                    context.Context
-	cCancel                 context.CancelFunc
-	cfg                     mconfig.MonitorConfig
-	healthCheckPort         int
-	healthCheckNodePort     int
-	ch                      chan dbAndIP
-	normalControllerDict    map[string]*dfHostCheck
-	exceptionControllerDict map[string]*dfHostCheck
-}
-
-func NewControllerCheck(cfg *over_config.ControllerConfig, ctx context.Context) *ControllerCheck {
-	cCtx, cCancel := context.WithCancel(ctx)
-	return &ControllerCheck{
-		cCtx:                    cCtx,
-		cCancel:                 cCancel,
-		cfg:                     cfg.MonitorCfg,
-		healthCheckPort:         cfg.ListenPort,
-		healthCheckNodePort:     cfg.ListenNodePort,
-		ch:                      make(chan dbAndIP, cfg.MonitorCfg.HealthCheckHandleChannelLen),
-		normalControllerDict:    make(map[string]*dfHostCheck),
-		exceptionControllerDict: make(map[string]*dfHostCheck),
-	}
-}
-
 func (c *ControllerCheck) Start(sCtx context.Context) {
 	log.Info("controller check start")
 	go func() {
@@ -464,5 +439,30 @@ func (c *ControllerCheck) SyncDefaultOrgData() {
 	}
 	if err := mysql.SyncDefaultOrgData(controllers, SyncControllerExcludeField); err != nil {
 		log.Error(err)
+	}
+}
+
+type ControllerCheck struct {
+	cCtx                    context.Context
+	cCancel                 context.CancelFunc
+	cfg                     mconfig.MonitorConfig
+	healthCheckPort         int
+	healthCheckNodePort     int
+	ch                      chan dbAndIP
+	normalControllerDict    map[string]*dfHostCheck
+	exceptionControllerDict map[string]*dfHostCheck
+}
+
+func NewControllerCheck(cfg *over_config.ControllerConfig, ctx context.Context) *ControllerCheck {
+	cCtx, cCancel := context.WithCancel(ctx)
+	return &ControllerCheck{
+		cCtx:                    cCtx,
+		cCancel:                 cCancel,
+		cfg:                     cfg.MonitorCfg,
+		healthCheckPort:         cfg.ListenPort,
+		healthCheckNodePort:     cfg.ListenNodePort,
+		ch:                      make(chan dbAndIP, cfg.MonitorCfg.HealthCheckHandleChannelLen),
+		normalControllerDict:    make(map[string]*dfHostCheck),
+		exceptionControllerDict: make(map[string]*dfHostCheck),
 	}
 }

@@ -48,22 +48,6 @@ func GetEncoder(orgID int) (*Encoder, error) {
 	return GetORGEncoders().NewEncoderAndInitIfNotExist(orgID)
 }
 
-func GetORGEncoders() *ORGEncoders {
-	orgEncodersOnce.Do(func() {
-		orgEncoders = &ORGEncoders{
-			orgIDToEncoder: make(map[int]*Encoder),
-		}
-	})
-	return orgEncoders
-}
-
-func (e *ORGEncoders) Init(ctx context.Context, cfg prometheuscfg.Config) {
-	log.Infof("init prometheus encoder")
-	e.cfg = cfg
-	e.orgIDToEncoder = make(map[int]*Encoder)
-	return
-}
-
 func (e *ORGEncoders) Start(sCtx context.Context) error {
 	log.Info("prometheus encoders started")
 	e.mux.Lock()
@@ -159,4 +143,19 @@ func (e *ORGEncoders) checkORGs() error {
 		}
 	}
 	return nil
+}
+
+func GetORGEncoders() *ORGEncoders {
+	orgEncodersOnce.Do(func() {
+		orgEncoders = &ORGEncoders{
+			orgIDToEncoder: make(map[int]*Encoder),
+		}
+	})
+	return orgEncoders
+}
+func (e *ORGEncoders) Init(ctx context.Context, cfg prometheuscfg.Config) {
+	log.Infof("init prometheus encoder")
+	e.cfg = cfg
+	e.orgIDToEncoder = make(map[int]*Encoder)
+	return
 }

@@ -19,14 +19,13 @@ package cache
 import (
 	"context"
 	"encoding/json"
+	"golang.org/x/sync/errgroup"
 	"sync"
 	"time"
 
-	"github.com/op/go-logging"
-	"golang.org/x/sync/errgroup"
-
 	"github.com/deepflowio/deepflow/message/controller"
 	"github.com/deepflowio/deepflow/server/controller/prometheus/common"
+	"github.com/op/go-logging"
 )
 
 var log = logging.MustGetLogger("prometheus.synchronizer.cache")
@@ -50,61 +49,8 @@ type Cache struct {
 	Label                   *label
 }
 
-func newCache(orgID int) (*Cache, error) {
-	log.Infof("[OID-%d] new prometheus cache", orgID)
-	org, err := common.NewORG(orgID)
-	if err != nil {
-		log.Errorf("[OID-%d] failed to create org object: %s", orgID, err.Error())
-		return nil, err
-	}
-	mn := newMetricName(org)
-	c := &Cache{
-		org:                     org,
-		canRefresh:              make(chan bool, 1),
-		MetricName:              mn,
-		LabelName:               newLabelName(org),
-		LabelValue:              newLabelValue(org),
-		MetricAndAPPLabelLayout: newMetricAndAPPLabelLayout(org),
-		Label:                   newLabel(org),
-	}
-	c.canRefresh <- true
-	return c, nil
-}
-
 func (c *Cache) GetORG() *common.ORG {
 	return c.org
-}
-
-func (c *Cache) Refresh() (err error) {
-LOOP:
-	for {
-		select {
-		case <-c.canRefresh:
-			err = c.refresh()
-			c.canRefresh <- true
-			break LOOP
-		default:
-			time.Sleep(time.Second)
-			log.Info(c.org.Log("last refresh cache not completed now"))
-		}
-	}
-	return
-}
-
-func (c *Cache) refresh() error {
-	log.Info(c.org.Log("refresh cache started"))
-	egRunAhead := &errgroup.Group{}
-	common.AppendErrGroup(egRunAhead, c.MetricName.refresh)
-	common.AppendErrGroup(egRunAhead, c.Label.refresh)
-	egRunAhead.Wait()
-	eg := &errgroup.Group{}
-	common.AppendErrGroup(eg, c.LabelName.refresh)
-	common.AppendErrGroup(eg, c.LabelValue.refresh)
-	common.AppendErrGroup(eg, c.MetricAndAPPLabelLayout.refresh)
-	err := eg.Wait()
-	log.Info(c.org.Log("refresh cache completed"))
-	return err
-
 }
 
 func GetDebugCache(t controller.PrometheusCacheType) []byte {
@@ -206,4 +152,59 @@ func GetDebugCache(t controller.PrometheusCacheType) []byte {
 		log.Error(err)
 	}
 	return b
+}
+
+// ------------------------------------------------------------------------------------------------------------V
+
+func newCache(orgID int) (*Cache, error) {
+	log.Infof("[OID-%d] new prometheus cache", orgID)
+	org, err := common.NewORG(orgID)
+	if err != nil {
+		log.Errorf("[OID-%d] failed to create org object: %s", orgID, err.Error())
+		return nil, err
+	}
+	mn := newMetricName(org)
+	c := &Cache{
+		org:                     org,
+		canRefresh:              make(chan bool, 1),
+		MetricName:              mn,
+		LabelName:               newLabelName(org),
+		LabelValue:              newLabelValue(org),
+		MetricAndAPPLabelLayout: newMetricAndAPPLabelLayout(org),
+		Label:                   newLabel(org),
+	}
+	c.canRefresh <- true
+	return c, nil
+}
+
+func (c *Cache) Refresh() (err error) {
+LOOP:
+	for {
+		select {
+		case <-c.canRefresh:
+			err = c.refresh()
+			c.canRefresh <- true
+			break LOOP
+		default:
+			time.Sleep(time.Second)
+			log.Info(c.org.Log("last refresh cache not completed now"))
+		}
+	}
+	return
+}
+
+func (c *Cache) refresh() error {
+	log.Info(c.org.Log("refresh cache started"))
+	egRunAhead := &errgroup.Group{}
+	common.AppendErrGroup(egRunAhead, c.MetricName.refresh) // mysql 指标
+	common.AppendErrGroup(egRunAhead, c.Label.refresh)      // mysql label
+	egRunAhead.Wait()
+	eg := &errgroup.Group{}
+	common.AppendErrGroup(eg, c.LabelName.refresh)
+	common.AppendErrGroup(eg, c.LabelValue.refresh)
+	common.AppendErrGroup(eg, c.MetricAndAPPLabelLayout.refresh)
+	err := eg.Wait()
+	log.Info(c.org.Log("refresh cache completed"))
+	return err
+
 }

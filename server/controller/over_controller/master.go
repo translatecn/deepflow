@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controller
+package over_controller
 
 import (
 	"context"
@@ -35,6 +35,75 @@ import (
 	"github.com/deepflowio/deepflow/server/controller/tagrecorder"
 	tagrecordercheck "github.com/deepflowio/deepflow/server/controller/tagrecorder/check"
 )
+
+// try to check until success
+func IsMasterController(cfg *over_config.ControllerConfig) bool {
+	if IsMasterRegion(cfg) {
+		for range time.Tick(time.Second * 5) {
+			isMasterController, err := election.IsMasterController()
+			if err == nil {
+				if isMasterController {
+					return true
+				} else {
+					return false
+				}
+			} else {
+				log.Errorf("check whether I am master controller failed: %s", err.Error())
+			}
+		}
+	}
+	return false
+}
+
+// migrate db by master region master controller
+func migrateMySQL(cfg *over_config.ControllerConfig) {
+	err := over_migrator.Migrate(cfg.MySqlCfg)
+	if err != nil {
+		log.Errorf("migrate mysql failed: %s", err.Error())
+		time.Sleep(time.Second)
+		os.Exit(0)
+	}
+}
+func checkAndStartAllRegionMasterFunctions(ctx context.Context) {
+	var sCtx context.Context
+	var sCancel context.CancelFunc
+
+	tr := tagrecorder.GetSingleton()
+	masterController := ""
+	thisIsMasterController := false
+	for range time.Tick(time.Minute) {
+		newThisIsMasterController, newMasterController, err := election.IsMasterControllerAndReturnIP()
+		if err != nil {
+			continue
+		}
+		if masterController != newMasterController {
+			if newThisIsMasterController {
+				sCtx, sCancel = context.WithCancel(ctx)
+				thisIsMasterController = true
+				log.Infof("I am the master controller now, previous master controller is %s", masterController)
+				go tr.Dictionary.Start(sCtx)
+			} else if thisIsMasterController {
+				thisIsMasterController = false
+				log.Infof("I am not the master controller anymore, new master controller is %s", newMasterController)
+			} else {
+				log.Infof(
+					"current master controller is %s, previous master controller is %s",
+					newMasterController, masterController,
+				)
+				if sCancel != nil {
+					sCancel()
+				}
+			}
+		}
+		masterController = newMasterController
+	}
+}
+func IsMasterRegion(cfg *over_config.ControllerConfig) bool {
+	if cfg.TrisolarisCfg.NodeType == "master" {
+		return true
+	}
+	return false
+}
 
 func checkAndStartMasterFunctions(
 	cfg *over_config.ControllerConfig, ctx context.Context,
@@ -157,75 +226,5 @@ func checkAndStartMasterFunctions(
 			}
 		}
 		masterController = newMasterController
-	}
-}
-
-func checkAndStartAllRegionMasterFunctions(ctx context.Context) {
-	var sCtx context.Context
-	var sCancel context.CancelFunc
-
-	tr := tagrecorder.GetSingleton()
-	masterController := ""
-	thisIsMasterController := false
-	for range time.Tick(time.Minute) {
-		newThisIsMasterController, newMasterController, err := election.IsMasterControllerAndReturnIP()
-		if err != nil {
-			continue
-		}
-		if masterController != newMasterController {
-			if newThisIsMasterController {
-				sCtx, sCancel = context.WithCancel(ctx)
-				thisIsMasterController = true
-				log.Infof("I am the master controller now, previous master controller is %s", masterController)
-				go tr.Dictionary.Start(sCtx)
-			} else if thisIsMasterController {
-				thisIsMasterController = false
-				log.Infof("I am not the master controller anymore, new master controller is %s", newMasterController)
-			} else {
-				log.Infof(
-					"current master controller is %s, previous master controller is %s",
-					newMasterController, masterController,
-				)
-				if sCancel != nil {
-					sCancel()
-				}
-			}
-		}
-		masterController = newMasterController
-	}
-}
-func IsMasterRegion(cfg *over_config.ControllerConfig) bool {
-	if cfg.TrisolarisCfg.NodeType == "master" {
-		return true
-	}
-	return false
-}
-
-// try to check until success
-func IsMasterController(cfg *over_config.ControllerConfig) bool {
-	if IsMasterRegion(cfg) {
-		for range time.Tick(time.Second * 5) {
-			isMasterController, err := election.IsMasterController()
-			if err == nil {
-				if isMasterController {
-					return true
-				} else {
-					return false
-				}
-			} else {
-				log.Errorf("check whether I am master controller failed: %s", err.Error())
-			}
-		}
-	}
-	return false
-}
-
-// migrate db by master region master controller
-func migrateMySQL(cfg *over_config.ControllerConfig) {
-	err := over_migrator.Migrate(cfg.MySqlCfg)
-	if err != nil {
-		log.Errorf("migrate mysql failed: %s", err.Error())
-		time.Sleep(time.Second)
-		os.Exit(0)
 	}
 }

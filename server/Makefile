@@ -13,14 +13,11 @@ BINARY_SUFFIX :=
 .PHONY: all
 all: server
 
-
+docker:
+	docker run --rm -it -v `pwd`/../:/data -w /data/server registry.cn-hangzhou.aliyuncs.com/acejilam/mygo:v1.21.1 make generate_message
 
 generate_message:
-	go generate ../message/common/stub.go
-	go generate ../message/trident/stub.go
-	go generate ../message/controller/stub.go
-	go generate ../message/alarm_event/stub.go
-	go generate ../message/k8s_event/stub.go
+	find ../vendor -type d -exec chmod +w {} \;
 
 	cp -r ../message/flow_log.proto libs/datatype/pb/
 	# delete first 3 char of line 6-10 for go language
@@ -34,27 +31,15 @@ generate_message:
 	# delete first 3 char of line 6-10 for go language
 	sed -i '6,10s/^...//' libs/stats/pb/stats.proto
 
-	go generate ./...
-
-
-
-
-libs/geo/ip_info.go: libs/geo/ip_info_mini.json libs/geo/ip_info.py
-	go generate ./...
-
-vendor:
-#	go install github.com/gogo/protobuf/protoc-gen-gofast@latest
-#	go install github.com/gogo/protobuf/protoc-gen-gogo@latest
-#	go install github.com/golang/protobuf/protoc-gen-go@latest
-#	go install github.com/benbjohnson/tmpl@latest
-#	GO111MODULE="off" GOPATH='/Users/acejilam/.gopath' /Users/acejilam/.gvm/gos/go1.18/bin/go get github.com/gogo/protobuf/protoc-gen-gofast
-#	GO111MODULE="off" GOPATH='/Users/acejilam/.gopath' /Users/acejilam/.gvm/gos/go1.18/bin/go get github.com/gogo/protobuf/proto
-#	GO111MODULE="off" GOPATH='/Users/acejilam/.gopath' /Users/acejilam/.gvm/gos/go1.18/bin/go get github.com/gogo/protobuf/jsonpb
-#	GO111MODULE="off" GOPATH='/Users/acejilam/.gopath' /Users/acejilam/.gvm/gos/go1.18/bin/go get github.com/gogo/protobuf/protoc-gen-gogo
-#	GO111MODULE="off" GOPATH='/Users/acejilam/.gopath' /Users/acejilam/.gvm/gos/go1.18/bin/go get github.com/gogo/protobuf/gogoproto
-#	GO111MODULE="off" GOPATH='/Users/acejilam/.gopath' /Users/acejilam/.gvm/gos/go1.18/bin/go get github.com/golang/protobuf/protoc-gen-go
+dep:
 	go mod tidy && go mod download && go mod vendor
-	find ../vendor -type d -exec chmod +w {} \;
+
+vendor: dep docker
+	go install github.com/gogo/protobuf/protoc-gen-gofast@latest
+	go install github.com/gogo/protobuf/protoc-gen-gogo@latest
+	go install github.com/golang/protobuf/protoc-gen-go@latest
+	go install github.com/benbjohnson/tmpl@latest
+	zsh sync.sh
 	# optimize the write performance of Array(string) data type
 	patch -p1 -d ../vendor/github.com/ClickHouse/clickhouse-go/v2/ < patch/clickhouse-go/write_improve.patch
 	# reset the pointer to the nullable field
@@ -66,17 +51,25 @@ vendor:
 	# hashmap support key [2]uint64
 	patch -p1 -d ../vendor/github.com/cornelk/hashmap < patch/cornelk_hashmap/complex128.patch
 
+	go generate ../message/common/stub.go
+	go generate ../message/trident/stub.go
+	go generate ../message/controller/stub.go
+	go generate ../message/alarm_event/stub.go
+	go generate ../message/k8s_event/stub.go
+	go generate ./...
+
+
 .PHONY: test
-test: vendor generate_message $(generated_libs)
+test: vendor generate_message
 	go test -mod vendor -short ./... -timeout 5s -coverprofile .test-coverage.txt
 	go tool cover -func=.test-coverage.txt
 
 .PHONY: server
-server: vendor generate_message
+server: vendor
 	docker run --rm -it -v `pwd`/../:/data -w /data/server registry.cn-hangzhou.aliyuncs.com/acejilam/mygo:v1.21.1 go build ${FLAGS} -o ../bin/deepflow-server${BINARY_SUFFIX} .
 
 .PHONY: querier
-querier: vendor generate_message
+querier: vendor
 	go build -mod vendor ${FLAGS} -o bin/querier${BINARY_SUFFIX} querier/cmd/querier/main.go
 
 .PHONY: clean

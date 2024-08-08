@@ -38,15 +38,6 @@ type VTapCheck struct {
 	cfg     config.MonitorConfig
 }
 
-func NewVTapCheck(cfg config.MonitorConfig, ctx context.Context) *VTapCheck {
-	vCtx, vCancel := context.WithCancel(ctx)
-	return &VTapCheck{
-		vCtx:    vCtx,
-		vCancel: vCancel,
-		cfg:     cfg,
-	}
-}
-
 func (v *VTapCheck) Start(sCtx context.Context) {
 	log.Info("vtap check start")
 	go func() {
@@ -340,4 +331,12 @@ func (v *VTapCheck) deleteLostVTap(db *mysql.DB) {
 		}
 	}
 	db.Delete(&vtaps, ids)
+}
+func NewVTapCheck(cfg config.MonitorConfig, ctx context.Context) *VTapCheck {
+	vCtx, vCancel := context.WithCancel(ctx)
+	return &VTapCheck{
+		vCtx:    vCtx,
+		vCancel: vCancel,
+		cfg:     cfg,
+	}
 }

@@ -31,31 +31,6 @@ import (
 	"github.com/deepflowio/deepflow/server/controller/trisolaris/refresh"
 )
 
-type AnalyzerCheck struct {
-	cCtx                  context.Context
-	cCancel               context.CancelFunc
-	cfg                   mconfig.MonitorConfig
-	healthCheckPort       int
-	healthCheckNodePort   int
-	ch                    chan dbAndIP
-	normalAnalyzerDict    map[string]*dfHostCheck
-	exceptionAnalyzerDict map[string]*dfHostCheck
-}
-
-func NewAnalyzerCheck(cfg *over_config.ControllerConfig, ctx context.Context) *AnalyzerCheck {
-	cCtx, cCancel := context.WithCancel(ctx)
-	return &AnalyzerCheck{
-		cCtx:                  cCtx,
-		cCancel:               cCancel,
-		cfg:                   cfg.MonitorCfg,
-		healthCheckPort:       cfg.ListenPort,
-		healthCheckNodePort:   cfg.ListenNodePort,
-		ch:                    make(chan dbAndIP, cfg.MonitorCfg.HealthCheckHandleChannelLen),
-		normalAnalyzerDict:    make(map[string]*dfHostCheck),
-		exceptionAnalyzerDict: make(map[string]*dfHostCheck),
-	}
-}
-
 func (c *AnalyzerCheck) Start(sCtx context.Context) {
 	log.Info("analyzer check start")
 	go func() {
@@ -463,5 +438,30 @@ func (c *AnalyzerCheck) SyncDefaultOrgData() {
 	}
 	if err := mysql.SyncDefaultOrgData(analyzers, SyncAnalyzerExcludeField); err != nil {
 		log.Error(err)
+	}
+}
+
+type AnalyzerCheck struct {
+	cCtx                  context.Context
+	cCancel               context.CancelFunc
+	cfg                   mconfig.MonitorConfig
+	healthCheckPort       int
+	healthCheckNodePort   int
+	ch                    chan dbAndIP
+	normalAnalyzerDict    map[string]*dfHostCheck
+	exceptionAnalyzerDict map[string]*dfHostCheck
+}
+
+func NewAnalyzerCheck(cfg *over_config.ControllerConfig, ctx context.Context) *AnalyzerCheck {
+	cCtx, cCancel := context.WithCancel(ctx)
+	return &AnalyzerCheck{
+		cCtx:                  cCtx,
+		cCancel:               cCancel,
+		cfg:                   cfg.MonitorCfg,
+		healthCheckPort:       cfg.ListenPort,
+		healthCheckNodePort:   cfg.ListenNodePort,
+		ch:                    make(chan dbAndIP, cfg.MonitorCfg.HealthCheckHandleChannelLen),
+		normalAnalyzerDict:    make(map[string]*dfHostCheck),
+		exceptionAnalyzerDict: make(map[string]*dfHostCheck),
 	}
 }

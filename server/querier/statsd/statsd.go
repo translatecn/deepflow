@@ -22,10 +22,6 @@ import (
 	"github.com/deepflowio/deepflow/server/libs/stats" // FIXME: why not use stats directly
 )
 
-func RegisterCountableForIngester(module string, countable stats.Countable, opts ...stats.Option) error {
-	return stats.RegisterCountableWithModulePrefix("querier_", module, countable, opts...)
-}
-
 type ClickhouseCounter struct {
 	QueryCount   uint64 `statsd:"query_count"`
 	ResponseSize uint64 `statsd:"response_size"`
@@ -160,3 +156,7 @@ func NewApiCounter() *ApiCounter {
 }
 
 var ApiCounters map[string]*ApiCounter
+
+func RegisterCountableForIngester(module string, countable stats.Countable, opts ...stats.Option) error {
+	return stats.RegisterCountableWithModulePrefix("querier_", module, countable, opts...)
+}

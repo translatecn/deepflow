@@ -45,12 +45,6 @@ type GrpcCounter struct {
 	*Counter
 }
 
-func NewGrpcCounter() *GrpcCounter {
-	return &GrpcCounter{
-		Counter: &Counter{},
-	}
-}
-
 func (g *GrpcCounter) GetCounter() interface{} {
 	counter := &Counter{}
 	counter, g.Counter = g.Counter, counter
@@ -132,5 +126,10 @@ func Start() {
 	err = stats.RegisterCountableWithModulePrefix("controller_", "trisolaris", GetPrometheusLabelIDsCounterSingleton(), stats.OptionStatTags{"grpc_type": "GetPrometheusLabelIDsDetail"})
 	if err != nil {
 		log.Error(err)
+	}
+}
+func NewGrpcCounter() *GrpcCounter {
+	return &GrpcCounter{
+		Counter: &Counter{},
 	}
 }

@@ -38,17 +38,6 @@ type ReportServer struct {
 	ReportData
 }
 
-func NewReportServer(db *gorm.DB) *ReportServer {
-	return &ReportServer{
-		db: db,
-		ReportData: ReportData{
-			ServerBranch:   serverBranch,
-			ServerRevCount: serverRevCount,
-			ServerCommitID: serverCommitID,
-		},
-	}
-}
-
 type ReportData struct {
 	DFUUID         string      `json:"deepflowDeploymentUUID"`
 	ServerRevCount string      `json:"serverRevCount"`
@@ -82,6 +71,23 @@ func getRandom(min int, max int) int {
 
 const minutesPerHour = 60
 
+var serverBranch, serverRevCount, serverCommitID string
+
+func SetServerInfo(branch string, revCount string, commitID string) {
+	serverBranch = branch
+	serverRevCount = revCount
+	serverCommitID = commitID
+}
+func NewReportServer(db *gorm.DB) *ReportServer {
+	return &ReportServer{
+		db: db,
+		ReportData: ReportData{
+			ServerBranch:   serverBranch,
+			ServerRevCount: serverRevCount,
+			ServerCommitID: serverCommitID,
+		},
+	}
+}
 func (r *ReportServer) StartReporting() {
 	timeAfter := time.After(time.Duration(getRandom(1*minutesPerHour, 2*minutesPerHour)) * time.Minute)
 	select {
@@ -98,7 +104,6 @@ func (r *ReportServer) StartReporting() {
 		}
 	}
 }
-
 func (r *ReportServer) report() {
 	log.Info("start reporting")
 	if r.DFUUID == "" {

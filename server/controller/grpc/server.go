@@ -18,16 +18,15 @@ package grpc
 
 import (
 	"context"
+	"github.com/deepflowio/deepflow/server/controller/grpc/statsd"
 	"github.com/deepflowio/deepflow/server/controller/over_config"
+	"google.golang.org/grpc/credentials"
 	"net"
 	"sync"
 
+	"github.com/deepflowio/deepflow/server/controller/trisolaris/utils"
 	"github.com/op/go-logging"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
-
-	"github.com/deepflowio/deepflow/server/controller/grpc/statsd"
-	"github.com/deepflowio/deepflow/server/controller/trisolaris/utils"
 )
 
 var log = logging.MustGetLogger("grpc/server")
@@ -36,6 +35,13 @@ var register = struct {
 	sync.RWMutex
 	r []Registration
 }{}
+
+func newServer(maxMsgSize int, opts ...grpc.ServerOption) *grpc.Server {
+	opts = append(opts, grpc.MaxMsgSize(maxMsgSize))
+	opts = append(opts, grpc.MaxRecvMsgSize(maxMsgSize))
+	opts = append(opts, grpc.MaxSendMsgSize(maxMsgSize))
+	return grpc.NewServer(opts...)
+}
 
 type Registration interface {
 	Register(*grpc.Server) error
@@ -69,13 +75,6 @@ func Run(ctx context.Context, cfg *over_config.ControllerConfig) {
 	<-ctx.Done()
 	server.Stop()
 	log.Info("grpc server shutdown")
-}
-
-func newServer(maxMsgSize int, opts ...grpc.ServerOption) *grpc.Server {
-	opts = append(opts, grpc.MaxMsgSize(maxMsgSize))
-	opts = append(opts, grpc.MaxRecvMsgSize(maxMsgSize))
-	opts = append(opts, grpc.MaxSendMsgSize(maxMsgSize))
-	return grpc.NewServer(opts...)
 }
 
 func RunTLS(ctx context.Context, cfg *over_config.ControllerConfig) {

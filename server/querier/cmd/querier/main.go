@@ -25,7 +25,7 @@ import (
 	logging "github.com/op/go-logging"
 
 	"github.com/deepflowio/deepflow/server/common"
-	"github.com/deepflowio/deepflow/server/querier/querier"
+	"github.com/deepflowio/deepflow/server/querier/over_querier"
 )
 
 var configPath = flag.String("f", "/etc/server.yaml", "Specify config file location")
@@ -42,5 +42,5 @@ func main() {
 		over_logger.EnableStdoutLog()
 	}
 	shared := common.NewControllerIngesterShared()
-	querier.Start(*configPath, "", shared)
+	over_querier.Start(*configPath, "", shared)
 }

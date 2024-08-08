@@ -166,6 +166,8 @@ harness = false
 
 [profile.release]
 panic = 'abort'
+lto = "fat"
+codegen-units = 1
 
 [profile.dev]
 panic = 'abort'

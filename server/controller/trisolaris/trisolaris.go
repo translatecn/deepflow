@@ -274,7 +274,7 @@ func PutGroup(orgID int) {
 	}
 }
 
-func (t *Trisolaris) Start() {
+func (t *Trisolaris) Start() { // todo 看不懂
 	log.Infof("start ORG(id=%d database=%s) data generate", t.mDB.ORGID, t.mDB.Name)
 	t.metaData.GetPlatformDataOP().RegisteNotifyIngesterDatachanged(
 		t.nodeInfo.NotifyBasePlatformDataChanged)

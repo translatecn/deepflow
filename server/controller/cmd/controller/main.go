@@ -17,9 +17,9 @@
 package main
 
 import (
-	"github.com/deepflowio/deepflow/server/controller/controller"
+	"github.com/deepflowio/deepflow/server/controller/over_controller"
 )
 
 func main() {
-	controller.Start(nil, "", "", nil)
+	over_controller.Start(nil, "", "", nil)
 }

@@ -50,21 +50,6 @@ type Cleaner struct {
 	cfg      prometheuscfg.Config
 }
 
-func GetCleaner() *Cleaner {
-	cleanerOnce.Do(func() {
-		cleaner = &Cleaner{
-			canClean: make(chan struct{}, 1),
-		}
-	})
-	return cleaner
-}
-
-func (c *Cleaner) Init(ctx context.Context, cfg prometheuscfg.Config) {
-	c.ctx, c.cancel = context.WithCancel(ctx)
-	c.cfg = cfg
-	c.canClean <- struct{}{}
-}
-
 func (c *Cleaner) Start(sCtx context.Context) error {
 	log.Info("prometheus data cleaner started")
 	go func() {
@@ -617,4 +602,18 @@ func (d *dataToCheck) load(db *mysql.DB) error {
 		return err
 	}
 	return nil
+}
+
+func GetCleaner() *Cleaner {
+	cleanerOnce.Do(func() {
+		cleaner = &Cleaner{
+			canClean: make(chan struct{}, 1),
+		}
+	})
+	return cleaner
+}
+func (c *Cleaner) Init(ctx context.Context, cfg prometheuscfg.Config) {
+	c.ctx, c.cancel = context.WithCancel(ctx)
+	c.cfg = cfg
+	c.canClean <- struct{}{}
 }

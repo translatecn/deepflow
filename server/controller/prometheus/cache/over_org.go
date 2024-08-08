@@ -51,45 +51,6 @@ type ORGCaches struct {
 	orgIDToCache cmap.ConcurrentMap[int, *Cache]
 }
 
-func GetORGCaches() *ORGCaches {
-	orgCachesOnce.Do(func() {
-		orgCaches = &ORGCaches{
-			orgIDToCache: cmap.NewWithCustomShardingFunction[int, *Cache](common.ShardingInt),
-		}
-	})
-	return orgCaches
-}
-
-func (c *ORGCaches) Init(ctx context.Context, cfg *prometheuscfg.Config) {
-	c.ctx = ctx
-	c.refreshInterval = time.Duration(cfg.SynchronizerCacheRefreshInterval) * time.Second
-}
-
-func (c *ORGCaches) Start(ctx context.Context, cfg *prometheuscfg.Config) error {
-	c.Init(ctx, cfg)
-	log.Info("prometheus caches started")
-	c.mux.Lock()
-	if c.working {
-		c.mux.Unlock()
-		return nil
-	}
-	c.working = true
-	c.mux.Unlock()
-
-	orgIDs, err := mysql.GetORGIDs()
-	if err != nil {
-		return fmt.Errorf("failed to get org ids: %v", err)
-	}
-
-	for _, id := range orgIDs {
-		if _, err := c.NewCacheAndInitIfNotExist(id); err != nil {
-			return fmt.Errorf("failed to start prometheus cache for org %d: %v", id, err)
-		}
-	}
-	c.refreshRegularly()
-	return nil
-}
-
 func (c *ORGCaches) Stop() {
 	if c.cancel != nil {
 		c.cancel()
@@ -99,6 +60,37 @@ func (c *ORGCaches) Stop() {
 	c.orgIDToCache.Clear()
 	c.mux.Unlock()
 	log.Info("prometheus caches stopped")
+}
+
+func (c *ORGCaches) checkORGs() error {
+	orgIDs, err := mysql.GetORGIDs()
+	if err != nil {
+		return fmt.Errorf("failed to get org ids: %v", err)
+	}
+
+	for iter := range c.orgIDToCache.IterBuffered() {
+		if !slices.Contains(orgIDs, iter.Key) {
+			c.orgIDToCache.Remove(iter.Key)
+		}
+	}
+	return nil
+}
+
+func (c *ORGCaches) GetORGIDToCache() cmap.ConcurrentMap[int, *Cache] {
+	return c.orgIDToCache
+}
+
+func GetORGCaches() *ORGCaches {
+	orgCachesOnce.Do(func() {
+		orgCaches = &ORGCaches{
+			orgIDToCache: cmap.NewWithCustomShardingFunction[int, *Cache](common.ShardingInt),
+		}
+	})
+	return orgCaches
+}
+func (c *ORGCaches) Init(ctx context.Context, cfg *prometheuscfg.Config) {
+	c.ctx = ctx
+	c.refreshInterval = time.Duration(cfg.SynchronizerCacheRefreshInterval) * time.Second
 }
 
 func (c *ORGCaches) NewCacheAndInitIfNotExist(orgID int) (*Cache, error) {
@@ -145,21 +137,27 @@ func (c *ORGCaches) refresh() error {
 	}
 	return nil
 }
+func (c *ORGCaches) Start(ctx context.Context, cfg *prometheuscfg.Config) error {
+	c.Init(ctx, cfg)
+	log.Info("prometheus caches started")
+	c.mux.Lock()
+	if c.working {
+		c.mux.Unlock()
+		return nil
+	}
+	c.working = true
+	c.mux.Unlock()
 
-func (c *ORGCaches) checkORGs() error {
 	orgIDs, err := mysql.GetORGIDs()
 	if err != nil {
 		return fmt.Errorf("failed to get org ids: %v", err)
 	}
 
-	for iter := range c.orgIDToCache.IterBuffered() {
-		if !slices.Contains(orgIDs, iter.Key) {
-			c.orgIDToCache.Remove(iter.Key)
+	for _, id := range orgIDs {
+		if _, err := c.NewCacheAndInitIfNotExist(id); err != nil {
+			return fmt.Errorf("failed to start prometheus cache for org %d: %v", id, err)
 		}
 	}
+	c.refreshRegularly()
 	return nil
-}
-
-func (c *ORGCaches) GetORGIDToCache() cmap.ConcurrentMap[int, *Cache] {
-	return c.orgIDToCache
 }

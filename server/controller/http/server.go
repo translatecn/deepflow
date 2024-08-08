@@ -18,6 +18,9 @@ package http
 
 import (
 	"fmt"
+	"github.com/deepflowio/deepflow/server/controller/http/appender"
+	"github.com/deepflowio/deepflow/server/controller/http/common/registrant"
+	"github.com/deepflowio/deepflow/server/controller/http/router/resource"
 	"github.com/deepflowio/deepflow/server/controller/over_config"
 	"github.com/deepflowio/deepflow/server/libs/over_logger"
 	"github.com/gin-gonic/gin"
@@ -27,10 +30,7 @@ import (
 	"time"
 
 	"github.com/deepflowio/deepflow/server/controller/genesis"
-	"github.com/deepflowio/deepflow/server/controller/http/appender"
-	"github.com/deepflowio/deepflow/server/controller/http/common/registrant"
 	"github.com/deepflowio/deepflow/server/controller/http/router"
-	"github.com/deepflowio/deepflow/server/controller/http/router/resource"
 	"github.com/deepflowio/deepflow/server/controller/manager"
 	"github.com/deepflowio/deepflow/server/controller/monitor"
 	trouter "github.com/deepflowio/deepflow/server/controller/trisolaris/server/http"
@@ -74,7 +74,7 @@ func (s *Server) RegisterRouters() {
 func (s *Server) appendRegistrant() []registrant.Registrant {
 	// contains routers supported in CE and EE
 	rs := []registrant.Registrant{
-		router.NewElection(),
+		router.NewElection(), // ✅
 		router.NewDebug(s.manager, s.genesis),
 		router.NewController(s.controllerConfig, s.controllerChecker),
 		router.NewAnalyzer(s.controllerConfig, s.analyzerChecker),
@@ -89,7 +89,7 @@ func (s *Server) appendRegistrant() []registrant.Registrant {
 		router.NewDatabase(s.controllerConfig),
 		router.NewAgentCMD(),
 		// icon
-		router.NewIcon(s.controllerConfig),
+		router.NewIcon(s.controllerConfig), // ✅
 
 		// resource
 		resource.NewDomain(s.controllerConfig),
