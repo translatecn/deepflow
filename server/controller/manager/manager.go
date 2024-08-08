@@ -20,20 +20,19 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	mapset "github.com/deckarep/golang-set"
+	cloudcfg "github.com/deepflowio/deepflow/server/controller/cloud/over_config"
+	recordercfg "github.com/deepflowio/deepflow/server/controller/recorder/config"
+	logging "github.com/op/go-logging"
 	"sync"
 	"time"
 
-	mapset "github.com/deckarep/golang-set"
-	logging "github.com/op/go-logging"
-
-	cloudcfg "github.com/deepflowio/deepflow/server/controller/cloud/config"
 	gathermodel "github.com/deepflowio/deepflow/server/controller/cloud/kubernetes_gather/model"
 	"github.com/deepflowio/deepflow/server/controller/cloud/model"
 	"github.com/deepflowio/deepflow/server/controller/common"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
 	"github.com/deepflowio/deepflow/server/controller/manager/config"
 	"github.com/deepflowio/deepflow/server/controller/recorder"
-	recordercfg "github.com/deepflowio/deepflow/server/controller/recorder/config"
 	"github.com/deepflowio/deepflow/server/libs/queue"
 )
 
@@ -44,14 +43,6 @@ type Manager struct {
 	taskMap            map[string]*Task
 	mutex              sync.RWMutex
 	resourceEventQueue *queue.OverwriteQueue
-}
-
-func NewManager(cfg config.ManagerConfig, resourceEventQueue *queue.OverwriteQueue) *Manager {
-	return &Manager{
-		cfg:                cfg,
-		taskMap:            make(map[string]*Task),
-		resourceEventQueue: resourceEventQueue,
-	}
 }
 
 func (m *Manager) GetCloudInfo(lcuuid string) (model.BasicInfo, error) {
@@ -161,6 +152,26 @@ func (m *Manager) GetRecorder(domainLcuuid string) (recorder.Recorder, error) {
 	return *task.Recorder, nil
 }
 
+func NewManager(cfg config.ManagerConfig, resourceEventQueue *queue.OverwriteQueue) *Manager {
+	return &Manager{
+		cfg:                cfg,
+		taskMap:            make(map[string]*Task),
+		resourceEventQueue: resourceEventQueue,
+	}
+}
+func (m *Manager) Start() {
+	cloudcfg.SetCloudGlobalConfig(m.cfg.TaskCfg.CloudCfg)
+	recordercfg.Set(&m.cfg.TaskCfg.RecorderCfg)
+
+	log.Info("manager started")
+	ctx := context.Context(context.Background())
+	go func() {
+		m.run(ctx)
+		for range time.Tick(time.Duration(m.cfg.CloudConfigCheckInterval) * time.Second) {
+			m.run(ctx)
+		}
+	}()
+}
 func (m *Manager) run(ctx context.Context) {
 	orgIDs, err := mysql.GetORGIDs()
 	if err != nil {
@@ -286,18 +297,4 @@ func (m *Manager) run(ctx context.Context) {
 			}
 		}
 	}
-}
-
-func (m *Manager) Start() {
-	cloudcfg.SetCloudGlobalConfig(m.cfg.TaskCfg.CloudCfg)
-	recordercfg.Set(&m.cfg.TaskCfg.RecorderCfg)
-
-	log.Info("manager started")
-	ctx := context.Context(context.Background())
-	go func() {
-		m.run(ctx)
-		for range time.Tick(time.Duration(m.cfg.CloudConfigCheckInterval) * time.Second) {
-			m.run(ctx)
-		}
-	}()
 }

@@ -56,10 +56,6 @@ func GetDictionary() *Dictionary {
 	return dictionary
 }
 
-func (c *Dictionary) Init(cfg over_config.ControllerConfig) {
-	c.cfg = cfg
-}
-
 func (c *Dictionary) Start(sCtx context.Context) {
 	go func() {
 		ticker := time.NewTicker(time.Duration(c.cfg.TagRecorderCfg.Interval) * time.Second)
@@ -443,4 +439,7 @@ func (c *Dictionary) update(clickHouseCfg *clickhouse.ClickHouseConfig) {
 
 	}
 
+}
+func (c *Dictionary) Init(cfg over_config.ControllerConfig) {
+	c.cfg = cfg
 }

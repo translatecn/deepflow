@@ -27,8 +27,8 @@ import (
 	"gorm.io/gorm"
 
 	cloudcommon "github.com/deepflowio/deepflow/server/controller/cloud/common"
-	"github.com/deepflowio/deepflow/server/controller/cloud/config"
 	"github.com/deepflowio/deepflow/server/controller/cloud/kubernetes_gather/model"
+	"github.com/deepflowio/deepflow/server/controller/cloud/over_config"
 	"github.com/deepflowio/deepflow/server/controller/common"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
 	"github.com/deepflowio/deepflow/server/controller/genesis"
@@ -80,7 +80,7 @@ type networkLcuuidCIDRs struct {
 	cidrs         []string
 }
 
-func NewKubernetesGather(db *mysql.DB, domain *mysql.Domain, subDomain *mysql.SubDomain, cfg config.CloudConfig, isSubDomain bool) *KubernetesGather {
+func NewKubernetesGather(db *mysql.DB, domain *mysql.Domain, subDomain *mysql.SubDomain, cfg over_config.CloudConfig, isSubDomain bool) *KubernetesGather {
 	var teamID int
 	var name string
 	var displayName string

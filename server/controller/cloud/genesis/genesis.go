@@ -25,8 +25,8 @@ import (
 	"inet.af/netaddr"
 
 	cloudcommon "github.com/deepflowio/deepflow/server/controller/cloud/common"
-	"github.com/deepflowio/deepflow/server/controller/cloud/config"
 	cloudmodel "github.com/deepflowio/deepflow/server/controller/cloud/model"
+	"github.com/deepflowio/deepflow/server/controller/cloud/over_config"
 	"github.com/deepflowio/deepflow/server/controller/common"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
 	"github.com/deepflowio/deepflow/server/controller/genesis"
@@ -54,7 +54,7 @@ type Genesis struct {
 	cloudStatsd     statsd.CloudStatsd
 }
 
-func NewGenesis(orgID int, domain mysql.Domain, cfg config.CloudConfig) (*Genesis, error) {
+func NewGenesis(orgID int, domain mysql.Domain, cfg over_config.CloudConfig) (*Genesis, error) {
 	config, err := simplejson.NewJson([]byte(domain.Config))
 	if err != nil {
 		log.Error(err)

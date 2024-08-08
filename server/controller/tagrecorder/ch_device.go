@@ -31,17 +31,6 @@ type ChVMDevice struct {
 	resourceTypeToIconID map[IconKey]int
 }
 
-func NewChVMDevice(resourceTypeToIconID map[IconKey]int) *ChVMDevice {
-	mng := &ChVMDevice{
-		newSubscriberComponent[*message.VMFieldsUpdate, message.VMFieldsUpdate, mysql.VM, mysql.ChDevice, DeviceKey](
-			common.RESOURCE_TYPE_VM_EN, RESOURCE_TYPE_CH_DEVICE,
-		),
-		resourceTypeToIconID,
-	}
-	mng.subscriberDG = mng
-	return mng
-}
-
 // sourceToTarget implements SubscriberDataGenerator
 func (c *ChVMDevice) sourceToTarget(md *message.Metadata, source *mysql.VM) (keys []DeviceKey, targets []mysql.ChDevice) {
 	iconID := c.resourceTypeToIconID[IconKey{
@@ -983,4 +972,15 @@ func (c *ChProcessDevice) softDeletedTargetsUpdated(targets []mysql.ChDevice, db
 		Columns:   []clause.Column{{Name: "deviceid"}, {Name: "devicetype"}},
 		DoUpdates: clause.AssignmentColumns([]string{"name"}),
 	}).Create(&targets)
+}
+
+func NewChVMDevice(resourceTypeToIconID map[IconKey]int) *ChVMDevice {
+	mng := &ChVMDevice{
+		newSubscriberComponent[*message.VMFieldsUpdate, message.VMFieldsUpdate, mysql.VM, mysql.ChDevice, DeviceKey](
+			common.RESOURCE_TYPE_VM_EN, RESOURCE_TYPE_CH_DEVICE,
+		),
+		resourceTypeToIconID,
+	}
+	mng.subscriberDG = mng
+	return mng
 }

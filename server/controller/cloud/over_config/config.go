@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package config
+package over_config
 
 var CONF *CloudConfig
 

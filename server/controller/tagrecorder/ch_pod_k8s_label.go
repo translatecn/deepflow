@@ -26,16 +26,6 @@ type ChPodK8sLabel struct {
 	SubscriberComponent[*message.PodFieldsUpdate, message.PodFieldsUpdate, mysql.Pod, mysql.ChPodK8sLabel, K8sLabelKey]
 }
 
-func NewChPodK8sLabel() *ChPodK8sLabel {
-	mng := &ChPodK8sLabel{
-		newSubscriberComponent[*message.PodFieldsUpdate, message.PodFieldsUpdate, mysql.Pod, mysql.ChPodK8sLabel, K8sLabelKey](
-			common.RESOURCE_TYPE_POD_EN, RESOURCE_TYPE_CH_K8S_LABEL,
-		),
-	}
-	mng.subscriberDG = mng
-	return mng
-}
-
 // onResourceUpdated implements SubscriberDataGenerator
 func (c *ChPodK8sLabel) onResourceUpdated(sourceID int, fieldsUpdate *message.PodFieldsUpdate, db *mysql.DB) {
 	keysToAdd := make([]K8sLabelKey, 0)
@@ -115,4 +105,13 @@ func (c *ChPodK8sLabel) sourceToTarget(md *message.Metadata, source *mysql.Pod) 
 // softDeletedTargetsUpdated implements SubscriberDataGenerator
 func (c *ChPodK8sLabel) softDeletedTargetsUpdated(targets []mysql.ChPodK8sLabel, db *mysql.DB) {
 
+}
+func NewChPodK8sLabel() *ChPodK8sLabel {
+	mng := &ChPodK8sLabel{
+		newSubscriberComponent[*message.PodFieldsUpdate, message.PodFieldsUpdate, mysql.Pod, mysql.ChPodK8sLabel, K8sLabelKey](
+			common.RESOURCE_TYPE_POD_EN, RESOURCE_TYPE_CH_K8S_LABEL,
+		),
+	}
+	mng.subscriberDG = mng
+	return mng
 }

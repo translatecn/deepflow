@@ -18,12 +18,11 @@ package refresh
 
 import (
 	"fmt"
+	"github.com/op/go-logging"
+	"gorm.io/gorm"
 	"net/url"
 	"strconv"
 	"time"
-
-	"github.com/op/go-logging"
-	"gorm.io/gorm"
 
 	"github.com/deepflowio/deepflow/server/controller/common"
 	models "github.com/deepflowio/deepflow/server/controller/db/mysql"
@@ -40,15 +39,6 @@ type RefreshOP struct {
 }
 
 var refreshOP *RefreshOP = nil
-
-func NewRefreshOP(db *gorm.DB, nodeIP string) *RefreshOP {
-	refreshOP = &RefreshOP{
-		nodeIP: nodeIP,
-		db:     db,
-	}
-
-	return refreshOP
-}
 
 var urlFormat = "http://%s:%d/v1/caches/?"
 
@@ -98,6 +88,27 @@ func (r *RefreshOP) refreshCache(orgID int, dataTypes []common.DataChanged) {
 	}
 }
 
+func NewRefreshOP(db *gorm.DB, nodeIP string) *RefreshOP {
+	refreshOP = &RefreshOP{
+		nodeIP: nodeIP,
+		db:     db,
+	}
+
+	return refreshOP
+}
+func (r *RefreshOP) TimedRefreshIPs() {
+	r.generateRefreshIPs()
+	ticker := time.NewTicker(time.Minute).C
+	for {
+		select {
+		case <-ticker:
+			log.Info("start generate refresh IPs from timed")
+			r.generateRefreshIPs()
+			log.Info("end generate refresh IPs from timed")
+		}
+	}
+}
+
 func (r *RefreshOP) generateRefreshIPs() {
 	dbControllers, err := dbmgr.DBMgr[models.Controller](r.db).Gets()
 	if err != nil {
@@ -130,17 +141,4 @@ func (r *RefreshOP) generateRefreshIPs() {
 	}
 	r.localRefreshIPs = localRefreshIPs
 	r.remoteRefreshIPs = remoteRefreshIPs
-}
-
-func (r *RefreshOP) TimedRefreshIPs() {
-	r.generateRefreshIPs()
-	ticker := time.NewTicker(time.Minute).C
-	for {
-		select {
-		case <-ticker:
-			log.Info("start generate refresh IPs from timed")
-			r.generateRefreshIPs()
-			log.Info("end generate refresh IPs from timed")
-		}
-	}
 }

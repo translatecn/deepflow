@@ -24,8 +24,8 @@ import (
 	"github.com/op/go-logging"
 
 	cloudcommon "github.com/deepflowio/deepflow/server/controller/cloud/common"
-	"github.com/deepflowio/deepflow/server/controller/cloud/config"
 	"github.com/deepflowio/deepflow/server/controller/cloud/model"
+	"github.com/deepflowio/deepflow/server/controller/cloud/over_config"
 	"github.com/deepflowio/deepflow/server/controller/common"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
 	"github.com/deepflowio/deepflow/server/controller/statsd"
@@ -47,7 +47,7 @@ type HuaWei struct {
 	debugger        *cloudcommon.Debugger
 }
 
-func NewHuaWei(orgID int, domain mysql.Domain, globalCloudCfg config.CloudConfig) (*HuaWei, error) {
+func NewHuaWei(orgID int, domain mysql.Domain, globalCloudCfg over_config.CloudConfig) (*HuaWei, error) {
 	conf := &Config{}
 	err := conf.LoadFromString(domain.Config)
 	if err != nil {

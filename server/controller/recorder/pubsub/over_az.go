@@ -34,6 +34,7 @@ type AZ struct {
 }
 
 func NewAZ() *AZ {
+	_ = new(AZ).Subscribe
 	return &AZ{
 		ResourcePubSubComponent[
 			*message.AZAdd,

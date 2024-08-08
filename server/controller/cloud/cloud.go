@@ -32,8 +32,8 @@ import (
 	"gorm.io/gorm"
 
 	cloudcommon "github.com/deepflowio/deepflow/server/controller/cloud/common"
-	"github.com/deepflowio/deepflow/server/controller/cloud/config"
 	"github.com/deepflowio/deepflow/server/controller/cloud/model"
+	"github.com/deepflowio/deepflow/server/controller/cloud/over_config"
 	"github.com/deepflowio/deepflow/server/controller/cloud/platform"
 	"github.com/deepflowio/deepflow/server/controller/common"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
@@ -47,7 +47,7 @@ var log = logging.MustGetLogger("cloud")
 type Cloud struct {
 	orgID                   int
 	db                      *mysql.DB
-	cfg                     config.CloudConfig
+	cfg                     over_config.CloudConfig
 	cCtx                    context.Context
 	cCancel                 context.CancelFunc
 	mutex                   sync.RWMutex
@@ -61,7 +61,7 @@ type Cloud struct {
 }
 
 // TODO 添加参数
-func NewCloud(orgID int, domain mysql.Domain, cfg config.CloudConfig, ctx context.Context) *Cloud {
+func NewCloud(orgID int, domain mysql.Domain, cfg over_config.CloudConfig, ctx context.Context) *Cloud {
 	mysqlDB, err := mysql.GetDB(orgID)
 	if err != nil {
 		log.Error(err)
@@ -119,10 +119,6 @@ func (c *Cloud) Stop() {
 
 func (c *Cloud) UpdateBasicInfoName(name string) {
 	c.basicInfo.Name = name
-}
-
-func (c *Cloud) GetOrgID() int {
-	return c.orgID
 }
 
 func (c *Cloud) GetBasicInfo() model.BasicInfo {
@@ -668,4 +664,7 @@ func (c *Cloud) appendResourceVIPs(resource model.Resource) model.Resource {
 		})
 	}
 	return resource
+}
+func (c *Cloud) GetOrgID() int {
+	return c.orgID
 }

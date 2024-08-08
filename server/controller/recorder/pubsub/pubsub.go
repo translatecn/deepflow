@@ -42,26 +42,6 @@ func newPubSubComponent(pubsubType string) PubSubComponent {
 	}
 }
 
-func (p *PubSubComponent) Subscribe(topic int, subscriber interface{}) {
-	// log.Infof("subscribe topic: %d to pubsub: %s from subscriber: %#v", topic, p.pubSubType, subscriber)
-	if _, exists := p.subscribers[topic]; !exists {
-		p.subscribers[topic] = []interface{}{}
-	}
-	p.subscribers[topic] = append(p.subscribers[topic], subscriber)
-}
-
-func (p *PubSubComponent) Unsubscribe(topic int, subscriber interface{}) {
-	if _, exists := p.subscribers[topic]; !exists {
-		return
-	}
-	for i, sub := range p.subscribers[topic] {
-		if sub == subscriber {
-			p.subscribers[topic] = append(p.subscribers[topic][:i], p.subscribers[topic][i+1:]...)
-			return
-		}
-	}
-}
-
 // PubSub interface for the whole cloud platform
 type DomainPubSub interface {
 	PubSub
@@ -159,6 +139,25 @@ func (p *ResourcePubSubComponent[MAPT, MAT, MUPT, MUT, MFUPT, MFUT, MDPT, MDT]) 
 			for _, sub := range subs {
 				sub.(ResourceBatchDeletedSubscriber).OnResourceBatchDeleted(md, msg.GetMySQLItems(), softDelete)
 			}
+		}
+	}
+}
+func (p *PubSubComponent) Subscribe(topic int, subscriber interface{}) {
+	// log.Infof("subscribe topic: %d to pubsub: %s from subscriber: %#v", topic, p.pubSubType, subscriber)
+	if _, exists := p.subscribers[topic]; !exists {
+		p.subscribers[topic] = []interface{}{}
+	}
+	p.subscribers[topic] = append(p.subscribers[topic], subscriber)
+}
+
+func (p *PubSubComponent) Unsubscribe(topic int, subscriber interface{}) {
+	if _, exists := p.subscribers[topic]; !exists {
+		return
+	}
+	for i, sub := range p.subscribers[topic] {
+		if sub == subscriber {
+			p.subscribers[topic] = append(p.subscribers[topic][:i], p.subscribers[topic][i+1:]...)
+			return
 		}
 	}
 }

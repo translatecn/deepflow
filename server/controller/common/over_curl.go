@@ -62,16 +62,17 @@ func WithORGHeader(value string) HeaderOption {
 	}
 }
 
-func fillHeader(req *http.Request) {
-	if req.Header.Get(HEADER_KEY_X_USER_ID) == "" {
-		req.Header.Set(HEADER_KEY_X_USER_ID, fmt.Sprintf("%d", USER_ID_SUPER_ADMIN))
+// TODO optimize
+// CURLForm 调用 deepflow 其他服务 API 并获取返回结果，Content-Type 为 application/x-www-form-urlencoded
+func CURLForm(method string, url string, values url.Values, options ...HeaderOption) (*simplejson.Json, error) {
+	log.Debugf("curl form: %s %s %+v", method, url, values)
+	req, err := http.NewRequest(method, url, strings.NewReader(values.Encode()))
+	if err != nil {
+		log.Error(err)
+		return errResponse, err
 	}
-	if req.Header.Get(HEADER_KEY_X_USER_TYPE) == "" {
-		req.Header.Set(HEADER_KEY_X_USER_TYPE, fmt.Sprintf("%d", USER_TYPE_SUPER_ADMIN))
-	}
-	if req.Header.Get(HEADER_KEY_ACCEPT) == "" {
-		req.Header.Set(HEADER_KEY_ACCEPT, ACCEPT_JSON)
-	}
+	req.Header.Set(HEADER_KEY_CONTENT_TYPE, CONTEXT_TYPE_FORM)
+	return doRequest(req, url, options...)
 }
 
 // CURLPerform 调用 deepflow 其他服务 API 并获取返回结果，Content-Type 为 application/json
@@ -85,6 +86,18 @@ func CURLPerform(method string, url string, body map[string]interface{}, options
 	}
 	req.Header.Set(HEADER_KEY_CONTENT_TYPE, CONTENT_TYPE_JSON)
 	return doRequest(req, url, options...)
+}
+
+func fillHeader(req *http.Request) {
+	if req.Header.Get(HEADER_KEY_X_USER_ID) == "" {
+		req.Header.Set(HEADER_KEY_X_USER_ID, fmt.Sprintf("%d", USER_ID_SUPER_ADMIN))
+	}
+	if req.Header.Get(HEADER_KEY_X_USER_TYPE) == "" {
+		req.Header.Set(HEADER_KEY_X_USER_TYPE, fmt.Sprintf("%d", USER_TYPE_SUPER_ADMIN))
+	}
+	if req.Header.Get(HEADER_KEY_ACCEPT) == "" {
+		req.Header.Set(HEADER_KEY_ACCEPT, ACCEPT_JSON)
+	}
 }
 
 func doRequest(req *http.Request, url string, options ...HeaderOption) (*simplejson.Json, error) {
@@ -140,17 +153,4 @@ func doRequest(req *http.Request, url string, options ...HeaderOption) (*simplej
 	}
 
 	return response, nil
-}
-
-// TODO optimize
-// CURLForm 调用 deepflow 其他服务 API 并获取返回结果，Content-Type 为 application/x-www-form-urlencoded
-func CURLForm(method string, url string, values url.Values, options ...HeaderOption) (*simplejson.Json, error) {
-	log.Debugf("curl form: %s %s %+v", method, url, values)
-	req, err := http.NewRequest(method, url, strings.NewReader(values.Encode()))
-	if err != nil {
-		log.Error(err)
-		return errResponse, err
-	}
-	req.Header.Set(HEADER_KEY_CONTENT_TYPE, CONTEXT_TYPE_FORM)
-	return doRequest(req, url, options...)
 }

@@ -40,11 +40,6 @@ func GetUpdaterManager() *UpdaterManager {
 	return updaterManager
 }
 
-func (u *UpdaterManager) Init(ctx context.Context, cfg over_config.ControllerConfig) {
-	u.cfg = cfg
-	u.tCtx, u.tCancel = context.WithCancel(ctx)
-}
-
 func (c *UpdaterManager) Start(sCtx context.Context) {
 	log.Info("tagrecorder updater manager started")
 	go func() {
@@ -258,4 +253,9 @@ func (b *UpdaterComponent[MT, KT]) generateOneData(db *mysql.DB) (map[KT]MT, boo
 		idToItem[b.updaterDG.generateKey(item)] = item
 	}
 	return idToItem, true
+}
+
+func (u *UpdaterManager) Init(ctx context.Context, cfg over_config.ControllerConfig) {
+	u.cfg = cfg
+	u.tCtx, u.tCancel = context.WithCancel(ctx)
 }

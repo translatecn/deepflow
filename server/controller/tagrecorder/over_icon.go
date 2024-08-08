@@ -95,23 +95,6 @@ func ParseIcon(cfg over_config.ControllerConfig, response *simplejson.Json) (map
 }
 
 // TODO: Icon supports multiple organizations
-// timing
-func UpdateIconInfo(cfg over_config.ControllerConfig) (map[string]int, map[IconKey]int, error) {
-	domainToIconID := make(map[string]int)
-	resourceToIconID := make(map[IconKey]int)
-	if !cfg.DFWebService.Enabled {
-		return domainToIconID, resourceToIconID, nil
-	}
-	body := make(map[string]interface{})
-	response, err := common.CURLPerform("GET", fmt.Sprintf("http://%s:%d/v1/icons", cfg.DFWebService.Host, cfg.DFWebService.Port), body)
-	if err != nil {
-		log.Error(err)
-		return domainToIconID, resourceToIconID, err
-	}
-	return ParseIcon(cfg, response)
-}
-
-// TODO: Icon supports multiple organizations
 // subscriber
 func GetIconInfo(cfg over_config.ControllerConfig) (map[string]int, map[IconKey]int, error) {
 	domainToIconID := make(map[string]int)
@@ -128,6 +111,23 @@ func GetIconInfo(cfg over_config.ControllerConfig) (map[string]int, map[IconKey]
 	}
 	body := make(map[string]interface{})
 	response, err := common.CURLPerform("GET", fmt.Sprintf("http://%s:%d/v1/icons/", controller.IP, cfg.ListenNodePort), body)
+	if err != nil {
+		log.Error(err)
+		return domainToIconID, resourceToIconID, err
+	}
+	return ParseIcon(cfg, response)
+}
+
+// TODO: Icon supports multiple organizations
+// timing
+func UpdateIconInfo(cfg over_config.ControllerConfig) (map[string]int, map[IconKey]int, error) {
+	domainToIconID := make(map[string]int)
+	resourceToIconID := make(map[IconKey]int)
+	if !cfg.DFWebService.Enabled {
+		return domainToIconID, resourceToIconID, nil
+	}
+	body := make(map[string]interface{})
+	response, err := common.CURLPerform("GET", fmt.Sprintf("http://%s:%d/v1/icons", cfg.DFWebService.Host, cfg.DFWebService.Port), body)
 	if err != nil {
 		log.Error(err)
 		return domainToIconID, resourceToIconID, err

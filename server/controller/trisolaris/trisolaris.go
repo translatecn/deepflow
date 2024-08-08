@@ -274,23 +274,6 @@ func PutGroup(orgID int) {
 	}
 }
 
-func getStartTime() int64 {
-	startTime := int64(0)
-	for {
-		startTime = election.GetAcquireTime()
-		if startTime == 0 {
-			log.Errorf("get start time(%d) failed", startTime)
-			time.Sleep(3 * time.Second)
-			continue
-		}
-		break
-	}
-
-	log.Infof("get start time(%d) success", startTime)
-
-	return startTime
-}
-
 func (t *Trisolaris) Start() {
 	log.Infof("start ORG(id=%d database=%s) data generate", t.mDB.ORGID, t.mDB.Name)
 	t.metaData.GetPlatformDataOP().RegisteNotifyIngesterDatachanged(
@@ -333,27 +316,6 @@ func NewTrisolaris(cfg *config.Config, mDB *mysql.DB, pctx context.Context, star
 	}
 
 	return trisolaris
-}
-
-func NewTrisolarisManager(cfg *config.Config, db *gorm.DB) *TrisolarisManager {
-	if trisolarisManager == nil {
-		cfg.Convert()
-		ctx, cancel := context.WithCancel(context.Background())
-		trisolarisManager = &TrisolarisManager{
-			orgToTrisolaris: [utils.ORG_ID_INDEX_MAX]*Trisolaris{},
-			refreshOP:       refresh.NewRefreshOP(db, cfg.NodeIP),
-			teamIDToOrgID:   make(map[string]int),
-			teamIDStrToInt:  make(map[string]int),
-			config:          cfg,
-			defaultDB:       db,
-			orgIDData:       &trident.OrgIDsResponse{},
-
-			ctx:    ctx,
-			cancel: cancel,
-		}
-	}
-
-	return trisolarisManager
 }
 
 func (m *TrisolarisManager) Start() error {
@@ -523,4 +485,41 @@ func (m *TrisolarisManager) TimedCheckORG() {
 			log.Info("end check org data from timed")
 		}
 	}
+}
+func NewTrisolarisManager(cfg *config.Config, db *gorm.DB) *TrisolarisManager {
+	if trisolarisManager == nil {
+		cfg.Convert()
+		ctx, cancel := context.WithCancel(context.Background())
+		trisolarisManager = &TrisolarisManager{
+			orgToTrisolaris: [utils.ORG_ID_INDEX_MAX]*Trisolaris{}, // 1025
+			refreshOP:       refresh.NewRefreshOP(db, cfg.NodeIP),
+			teamIDToOrgID:   make(map[string]int),
+			teamIDStrToInt:  make(map[string]int),
+			config:          cfg,
+			defaultDB:       db,
+			orgIDData:       &trident.OrgIDsResponse{},
+
+			ctx:    ctx,
+			cancel: cancel,
+		}
+	}
+
+	return trisolarisManager
+}
+
+func getStartTime() int64 {
+	startTime := int64(0)
+	for {
+		startTime = election.GetAcquireTime()
+		if startTime == 0 {
+			log.Errorf("get start time(%d) failed", startTime)
+			time.Sleep(3 * time.Second)
+			continue
+		}
+		break
+	}
+
+	log.Infof("get start time(%d) success", startTime)
+
+	return startTime
 }

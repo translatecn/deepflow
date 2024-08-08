@@ -132,13 +132,13 @@ func Start(ctx context.Context, configPath, serverLogFile string, shared *server
 	router.SetInitStageForHealthChecker("Genesis init")
 	// 启动 genesis
 	g := genesis.NewGenesis(cfg)
-	g.Start()
+	g.Start() //  xx 和 数据库 的同步
 
 	// start tagrecorder before manager to prevent recorder from publishing message when tagrecorder is not ready
 	router.SetInitStageForHealthChecker("TagRecorder init")
 	tr := tagrecorder.GetSingleton()
 	tr.Init(ctx, *cfg)
-	err = tr.SubscriberManager.Start()
+	err = tr.SubscriberManager.Start() // 相当于 注册好回调
 	if err != nil {
 		log.Errorf("get icon failed: %s", err.Error())
 		time.Sleep(time.Second)

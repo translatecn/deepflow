@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/deepflowio/deepflow/server/controller/genesis/config"
 	"net"
 	"regexp"
 	"sort"
@@ -34,7 +35,6 @@ import (
 	cloudmodel "github.com/deepflowio/deepflow/server/controller/cloud/model"
 	"github.com/deepflowio/deepflow/server/controller/common"
 	genesiscommon "github.com/deepflowio/deepflow/server/controller/genesis/common"
-	"github.com/deepflowio/deepflow/server/controller/genesis/config"
 	"github.com/deepflowio/deepflow/server/controller/model"
 	"github.com/deepflowio/deepflow/server/libs/queue"
 )
@@ -58,94 +58,6 @@ type GenesisSyncRpcUpdater struct {
 	vmNameField           string
 	ignoreNICRegex        *regexp.Regexp
 	genesisSyncDataByVtap map[string]GenesisSyncDataOperation
-}
-
-func NewGenesisSyncRpcUpdater(storage *SyncStorage, queue queue.QueueReader, cfg config.GenesisConfig, ctx context.Context) *GenesisSyncRpcUpdater {
-	hostIPRanges := []netaddr.IPPrefix{}
-	for _, h := range cfg.HostIPs {
-		ipObj, err := netaddr.ParseIP(h)
-		if err == nil {
-			var bit uint8
-			switch {
-			case ipObj.Is4():
-				bit = 32
-			case ipObj.Is6():
-				bit = 128
-			}
-			ipPrefix, err := ipObj.Prefix(bit)
-			if err != nil {
-				log.Error("host ip convert to ip prefix error: " + err.Error())
-				continue
-			}
-			hostIPRanges = append(hostIPRanges, ipPrefix)
-		} else {
-			hostIPRange, err := netaddr.ParseIPPrefix(h)
-			if err == nil {
-				hostIPRanges = append(hostIPRanges, hostIPRange)
-			} else {
-				hostIPRangeSlice, err := netaddr.ParseIPRange(h)
-				if err != nil {
-					log.Error("parse host ip ranges error: " + err.Error())
-					continue
-				}
-				hostIPRanges = append(hostIPRanges, hostIPRangeSlice.Prefixes()...)
-			}
-		}
-	}
-
-	localIPRanges := []netaddr.IPPrefix{}
-	if len(cfg.LocalIPRanges) > 0 {
-		for _, l := range cfg.LocalIPRanges {
-			localIPRange, err := netaddr.ParseIPPrefix(l)
-			if err != nil {
-				localIPRangeSlice, err := netaddr.ParseIPRange(l)
-				if err != nil {
-					log.Error("parse local ip ranges error: " + err.Error())
-					continue
-				}
-				localIPRanges = append(localIPRanges, localIPRangeSlice.Prefixes()...)
-			} else {
-				localIPRanges = append(localIPRanges, localIPRange)
-			}
-		}
-	}
-
-	excludeIPRanges := []netaddr.IPPrefix{}
-	if len(cfg.ExcludeIPRanges) > 0 {
-		for _, e := range cfg.ExcludeIPRanges {
-			excludeIPRange, err := netaddr.ParseIPPrefix(e)
-			if err != nil {
-				excludeIPRangeSlice, err := netaddr.ParseIPRange(e)
-				if err != nil {
-					log.Error("parse exclude ip ranges error: " + err.Error())
-				}
-				excludeIPRanges = append(excludeIPRanges, excludeIPRangeSlice.Prefixes()...)
-			} else {
-				excludeIPRanges = append(excludeIPRanges, excludeIPRange)
-			}
-		}
-	}
-
-	ignoreNICRegex, err := regexp.Compile(cfg.IgnoreNICRegex)
-	if err != nil {
-		log.Errorf("config ignore NIC regex (%s) complie failed", cfg.IgnoreNICRegex)
-	}
-
-	vCtx, vCancel := context.WithCancel(ctx)
-	return &GenesisSyncRpcUpdater{
-		vCtx:                  vCtx,
-		vCancel:               vCancel,
-		storage:               storage,
-		outputQueue:           queue,
-		hostIPsRanges:         hostIPRanges,
-		localIPRanges:         localIPRanges,
-		excludeIPRanges:       excludeIPRanges,
-		multiNSMode:           cfg.MultiNSMode,
-		singleVPCMode:         cfg.SingleVPCMode,
-		vmNameField:           cfg.VMNameField,
-		ignoreNICRegex:        ignoreNICRegex,
-		genesisSyncDataByVtap: map[string]GenesisSyncDataOperation{},
-	}
 }
 
 func (v *GenesisSyncRpcUpdater) ParseVinterfaceInfo(info VIFRPCMessage, peer string, vtapID uint32, k8sClusterID, deviceType string) []model.GenesisVinterface {
@@ -1123,5 +1035,92 @@ func (p *PrometheusRpcUpdater) Start() {
 func (p *PrometheusRpcUpdater) Stop() {
 	if p.kCancel != nil {
 		p.kCancel()
+	}
+}
+func NewGenesisSyncRpcUpdater(storage *SyncStorage, queue queue.QueueReader, cfg config.GenesisConfig, ctx context.Context) *GenesisSyncRpcUpdater {
+	hostIPRanges := []netaddr.IPPrefix{}
+	for _, h := range cfg.HostIPs {
+		ipObj, err := netaddr.ParseIP(h)
+		if err == nil {
+			var bit uint8
+			switch {
+			case ipObj.Is4():
+				bit = 32
+			case ipObj.Is6():
+				bit = 128
+			}
+			ipPrefix, err := ipObj.Prefix(bit)
+			if err != nil {
+				log.Error("host ip convert to ip prefix error: " + err.Error())
+				continue
+			}
+			hostIPRanges = append(hostIPRanges, ipPrefix)
+		} else {
+			hostIPRange, err := netaddr.ParseIPPrefix(h)
+			if err == nil {
+				hostIPRanges = append(hostIPRanges, hostIPRange)
+			} else {
+				hostIPRangeSlice, err := netaddr.ParseIPRange(h)
+				if err != nil {
+					log.Error("parse host ip ranges error: " + err.Error())
+					continue
+				}
+				hostIPRanges = append(hostIPRanges, hostIPRangeSlice.Prefixes()...)
+			}
+		}
+	}
+
+	localIPRanges := []netaddr.IPPrefix{}
+	if len(cfg.LocalIPRanges) > 0 {
+		for _, l := range cfg.LocalIPRanges {
+			localIPRange, err := netaddr.ParseIPPrefix(l)
+			if err != nil {
+				localIPRangeSlice, err := netaddr.ParseIPRange(l)
+				if err != nil {
+					log.Error("parse local ip ranges error: " + err.Error())
+					continue
+				}
+				localIPRanges = append(localIPRanges, localIPRangeSlice.Prefixes()...)
+			} else {
+				localIPRanges = append(localIPRanges, localIPRange)
+			}
+		}
+	}
+
+	excludeIPRanges := []netaddr.IPPrefix{}
+	if len(cfg.ExcludeIPRanges) > 0 {
+		for _, e := range cfg.ExcludeIPRanges {
+			excludeIPRange, err := netaddr.ParseIPPrefix(e)
+			if err != nil {
+				excludeIPRangeSlice, err := netaddr.ParseIPRange(e)
+				if err != nil {
+					log.Error("parse exclude ip ranges error: " + err.Error())
+				}
+				excludeIPRanges = append(excludeIPRanges, excludeIPRangeSlice.Prefixes()...)
+			} else {
+				excludeIPRanges = append(excludeIPRanges, excludeIPRange)
+			}
+		}
+	}
+
+	ignoreNICRegex, err := regexp.Compile(cfg.IgnoreNICRegex)
+	if err != nil {
+		log.Errorf("config ignore NIC regex (%s) complie failed", cfg.IgnoreNICRegex)
+	}
+
+	vCtx, vCancel := context.WithCancel(ctx)
+	return &GenesisSyncRpcUpdater{
+		vCtx:                  vCtx,
+		vCancel:               vCancel,
+		storage:               storage,
+		outputQueue:           queue,
+		hostIPsRanges:         hostIPRanges,
+		localIPRanges:         localIPRanges,
+		excludeIPRanges:       excludeIPRanges,
+		multiNSMode:           cfg.MultiNSMode,
+		singleVPCMode:         cfg.SingleVPCMode,
+		vmNameField:           cfg.VMNameField,
+		ignoreNICRegex:        ignoreNICRegex,
+		genesisSyncDataByVtap: map[string]GenesisSyncDataOperation{},
 	}
 }

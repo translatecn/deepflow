@@ -17,7 +17,7 @@
 package config
 
 import (
-	cloudconfig "github.com/deepflowio/deepflow/server/controller/cloud/config"
+	cloudconfig "github.com/deepflowio/deepflow/server/controller/cloud/over_config"
 	recorderconfig "github.com/deepflowio/deepflow/server/controller/recorder/config"
 )
 

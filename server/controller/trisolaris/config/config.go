@@ -17,10 +17,9 @@
 package config
 
 import (
+	"github.com/op/go-logging"
 	"net"
 	"os"
-
-	"github.com/op/go-logging"
 
 	"github.com/deepflowio/deepflow/server/controller/common"
 )
@@ -67,26 +66,6 @@ type Config struct {
 	ExportersEnabled               bool
 
 	NodeIP string
-}
-
-func (c *Config) Convert() {
-	if c.Chrony.Host != "" {
-		if value, ok := os.LookupEnv(c.Chrony.Host); ok {
-			c.Chrony.Host = value
-		}
-		log.Infof("%+v", c.Chrony)
-	}
-	nodeIP := common.GetNodeIP()
-	if nodeIP == "" {
-		log.Errorf("get env(%s) data failed", common.NODE_IP_KEY)
-		return
-	}
-	ip := net.ParseIP(nodeIP)
-	if ip == nil {
-		log.Errorf("IP(%s) address format is incorrect", nodeIP)
-	} else {
-		c.NodeIP = nodeIP
-	}
 }
 
 func (c *Config) SetAllAgentConnectToNatIP(data bool) {
@@ -171,4 +150,23 @@ func (c *Config) SetFPermitConfig(fpermit common.FPermit) {
 
 func (c *Config) GetFPermitConfig() common.FPermit {
 	return c.FPermit
+}
+func (c *Config) Convert() {
+	if c.Chrony.Host != "" {
+		if value, ok := os.LookupEnv(c.Chrony.Host); ok {
+			c.Chrony.Host = value
+		}
+		log.Infof("%+v", c.Chrony)
+	}
+	nodeIP := common.GetNodeIP()
+	if nodeIP == "" {
+		log.Errorf("get env(%s) data failed", common.NODE_IP_KEY)
+		return
+	}
+	ip := net.ParseIP(nodeIP)
+	if ip == nil {
+		log.Errorf("IP(%s) address format is incorrect", nodeIP)
+	} else {
+		c.NodeIP = nodeIP
+	}
 }

@@ -149,21 +149,6 @@ func (s *SyncStorage) Update(data GenesisSyncDataOperation, info VIFRPCMessage) 
 	s.dirty = true
 }
 
-func (s *SyncStorage) fetch() {
-	s.channel <- GenesisSyncData{
-		VIPs:        s.genesisSyncInfo.VIPs.Fetch(),
-		VMs:         s.genesisSyncInfo.VMs.Fetch(),
-		VPCs:        s.genesisSyncInfo.VPCs.Fetch(),
-		Hosts:       s.genesisSyncInfo.Hosts.Fetch(),
-		Ports:       s.genesisSyncInfo.Ports.Fetch(),
-		Lldps:       s.genesisSyncInfo.Lldps.Fetch(),
-		IPLastSeens: s.genesisSyncInfo.IPlastseens.Fetch(),
-		Networks:    s.genesisSyncInfo.Networks.Fetch(),
-		Vinterfaces: s.genesisSyncInfo.Vinterfaces.Fetch(),
-		Processes:   s.genesisSyncInfo.Processes.Fetch(),
-	}
-}
-
 func (s *SyncStorage) loadFromDatabase(ageTime time.Duration) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
@@ -214,22 +199,6 @@ func (s *SyncStorage) loadFromDatabase(ageTime time.Duration) {
 	s.fetch()
 }
 
-func (s *SyncStorage) storeToDatabase() {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
-	s.genesisSyncInfo.VIPs.Save()
-	s.genesisSyncInfo.VMs.Save()
-	s.genesisSyncInfo.VPCs.Save()
-	s.genesisSyncInfo.Hosts.Save()
-	s.genesisSyncInfo.Ports.Save()
-	s.genesisSyncInfo.Lldps.Save()
-	s.genesisSyncInfo.IPlastseens.Save()
-	s.genesisSyncInfo.Networks.Save()
-	s.genesisSyncInfo.Vinterfaces.Save()
-	s.genesisSyncInfo.Processes.Save()
-}
-
 func (s *SyncStorage) run() {
 	ageTime := time.Duration(s.cfg.AgingTime) * time.Second
 	s.loadFromDatabase(ageTime)
@@ -259,7 +228,7 @@ func (s *SyncStorage) run() {
 }
 
 func (s *SyncStorage) Start() {
-	go s.refreshDatabase()
+	go s.refreshDatabase() // node 当前的tags 不在 tag 表里的，需要删除
 	go s.run()
 }
 
@@ -566,5 +535,36 @@ func (s *SyncStorage) refreshDatabase() {
 		}
 
 		s.dirty = true
+	}
+}
+
+func (s *SyncStorage) storeToDatabase() {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	s.genesisSyncInfo.VIPs.Save()
+	s.genesisSyncInfo.VMs.Save()
+	s.genesisSyncInfo.VPCs.Save()
+	s.genesisSyncInfo.Hosts.Save()
+	s.genesisSyncInfo.Ports.Save()
+	s.genesisSyncInfo.Lldps.Save()
+	s.genesisSyncInfo.IPlastseens.Save()
+	s.genesisSyncInfo.Networks.Save()
+	s.genesisSyncInfo.Vinterfaces.Save()
+	s.genesisSyncInfo.Processes.Save()
+}
+
+func (s *SyncStorage) fetch() {
+	s.channel <- GenesisSyncData{
+		VIPs:        s.genesisSyncInfo.VIPs.Fetch(),
+		VMs:         s.genesisSyncInfo.VMs.Fetch(),
+		VPCs:        s.genesisSyncInfo.VPCs.Fetch(),
+		Hosts:       s.genesisSyncInfo.Hosts.Fetch(),
+		Ports:       s.genesisSyncInfo.Ports.Fetch(),
+		Lldps:       s.genesisSyncInfo.Lldps.Fetch(),
+		IPLastSeens: s.genesisSyncInfo.IPlastseens.Fetch(),
+		Networks:    s.genesisSyncInfo.Networks.Fetch(),
+		Vinterfaces: s.genesisSyncInfo.Vinterfaces.Fetch(),
+		Processes:   s.genesisSyncInfo.Processes.Fetch(),
 	}
 }

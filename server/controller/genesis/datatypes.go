@@ -117,22 +117,6 @@ type GenesisSyncTypeOperation[T model.GenesisVinterface | model.GenesisVpc | mod
 	dataDict map[int]map[string]T
 }
 
-func (g *GenesisSyncTypeOperation[T]) Fetch() map[int][]T {
-	g.mutex.Lock()
-	defer g.mutex.Unlock()
-
-	result := map[int][]T{}
-	for orgID, Dict := range g.dataDict {
-		data := []T{}
-		for _, d := range Dict {
-			data = append(data, d)
-		}
-		result[orgID] = data
-	}
-
-	return result
-}
-
 func (g *GenesisSyncTypeOperation[T]) Renew(data map[int][]T, timestamp time.Time) {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
@@ -176,25 +160,6 @@ func (g *GenesisSyncTypeOperation[T]) Update(data map[int][]T, timestamp time.Ti
 			}
 		}
 	}
-}
-
-func (g *GenesisSyncTypeOperation[T]) Age(timestamp time.Time, timeout time.Duration) bool {
-	ageTimestamp := timestamp.Add(-timeout)
-	removed := false
-
-	g.mutex.Lock()
-	defer g.mutex.Unlock()
-	for orgID := range g.dataDict {
-		for dataLcuuid := range g.dataDict[orgID] {
-			if ageTimestamp.After(g.lastSeen[orgID][dataLcuuid]) {
-				removed = true
-				delete(g.dataDict[orgID], dataLcuuid)
-				delete(g.lastSeen[orgID], dataLcuuid)
-			}
-		}
-	}
-
-	return removed
 }
 
 func (g *GenesisSyncTypeOperation[T]) Load(timestamp time.Time, timeout time.Duration) {
@@ -241,6 +206,8 @@ func (g *GenesisSyncTypeOperation[T]) Load(timestamp time.Time, timeout time.Dur
 
 }
 
+// ----------------------------------------------------------------------------------------
+
 func (g *GenesisSyncTypeOperation[T]) Save() {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
@@ -284,7 +251,24 @@ func (g *GenesisSyncTypeOperation[T]) Save() {
 	}
 }
 
-// ----------------------------------------------------------------------------------------
+func (g *GenesisSyncTypeOperation[T]) Age(timestamp time.Time, timeout time.Duration) bool {
+	ageTimestamp := timestamp.Add(-timeout)
+	removed := false
+
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+	for orgID := range g.dataDict {
+		for dataLcuuid := range g.dataDict[orgID] {
+			if ageTimestamp.After(g.lastSeen[orgID][dataLcuuid]) {
+				removed = true
+				delete(g.dataDict[orgID], dataLcuuid)
+				delete(g.lastSeen[orgID], dataLcuuid)
+			}
+		}
+	}
+
+	return removed
+}
 
 func NewHostPlatformDataOperation(orgID int, dataList []model.GenesisHost) *GenesisSyncTypeOperation[model.GenesisHost] {
 	lastSeen := map[int]map[string]time.Time{}
@@ -454,4 +438,19 @@ func NewProcessPlatformDataOperation(orgID int, dataList []model.GenesisProcess)
 		lastSeen: lastSeen,
 		dataDict: dataDict,
 	}
+}
+func (g *GenesisSyncTypeOperation[T]) Fetch() map[int][]T {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+
+	result := map[int][]T{}
+	for orgID, Dict := range g.dataDict {
+		data := []T{}
+		for _, d := range Dict {
+			data = append(data, d)
+		}
+		result[orgID] = data
+	}
+
+	return result
 }

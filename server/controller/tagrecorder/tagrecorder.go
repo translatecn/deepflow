@@ -31,6 +31,22 @@ var (
 	tagRecorder     *TagRecorder
 )
 
+type TagRecorder struct {
+	Dictionary        *Dictionary        // run in master controller of all regions
+	UpdaterManager    *UpdaterManager    // run in master controller of master region
+	SubscriberManager *SubscriberManager // run in all controllers of all regions
+}
+
+var (
+	updaterManagerOnce sync.Once
+	updaterManager     *UpdaterManager
+)
+
+func (c *TagRecorder) Init(ctx context.Context, cfg over_config.ControllerConfig) {
+	c.Dictionary.Init(cfg)
+	c.UpdaterManager.Init(ctx, cfg)
+	c.SubscriberManager.Init(cfg)
+}
 func GetSingleton() *TagRecorder {
 	tagRecorderOnce.Do(func() {
 		tagRecorder = &TagRecorder{
@@ -41,20 +57,3 @@ func GetSingleton() *TagRecorder {
 	})
 	return tagRecorder
 }
-
-type TagRecorder struct {
-	Dictionary        *Dictionary        // run in master controller of all regions
-	UpdaterManager    *UpdaterManager    // run in master controller of master region
-	SubscriberManager *SubscriberManager // run in all controllers of all regions
-}
-
-func (c *TagRecorder) Init(ctx context.Context, cfg over_config.ControllerConfig) {
-	c.Dictionary.Init(cfg)
-	c.UpdaterManager.Init(ctx, cfg)
-	c.SubscriberManager.Init(cfg)
-}
-
-var (
-	updaterManagerOnce sync.Once
-	updaterManager     *UpdaterManager
-)

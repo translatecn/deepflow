@@ -17,9 +17,9 @@
 package tagrecorder
 
 import (
+	"github.com/deepflowio/deepflow/server/controller/common"
 	"gorm.io/gorm/clause"
 
-	"github.com/deepflowio/deepflow/server/controller/common"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
 	"github.com/deepflowio/deepflow/server/controller/recorder/pubsub/message"
 )
@@ -28,18 +28,6 @@ type ChAZ struct {
 	SubscriberComponent[*message.AZFieldsUpdate, message.AZFieldsUpdate, mysql.AZ, mysql.ChAZ, IDKey]
 	domainLcuuidToIconID map[string]int
 	resourceTypeToIconID map[IconKey]int
-}
-
-func NewChAZ(domainLcuuidToIconID map[string]int, resourceTypeToIconID map[IconKey]int) *ChAZ {
-	mng := &ChAZ{
-		newSubscriberComponent[*message.AZFieldsUpdate, message.AZFieldsUpdate, mysql.AZ, mysql.ChAZ, IDKey](
-			common.RESOURCE_TYPE_AZ_EN, RESOURCE_TYPE_CH_AZ,
-		),
-		domainLcuuidToIconID,
-		resourceTypeToIconID,
-	}
-	mng.subscriberDG = mng
-	return mng
 }
 
 // onResourceUpdated implements SubscriberDataGenerator
@@ -92,4 +80,15 @@ func (a *ChAZ) softDeletedTargetsUpdated(targets []mysql.ChAZ, db *mysql.DB) {
 		Columns:   []clause.Column{{Name: "id"}},
 		DoUpdates: clause.AssignmentColumns([]string{"name"}),
 	}).Create(&targets)
+}
+func NewChAZ(domainLcuuidToIconID map[string]int, resourceTypeToIconID map[IconKey]int) *ChAZ {
+	mng := &ChAZ{
+		newSubscriberComponent[*message.AZFieldsUpdate, message.AZFieldsUpdate, mysql.AZ, mysql.ChAZ, IDKey](
+			common.RESOURCE_TYPE_AZ_EN, RESOURCE_TYPE_CH_AZ,
+		),
+		domainLcuuidToIconID,
+		resourceTypeToIconID,
+	}
+	mng.subscriberDG = mng
+	return mng
 }

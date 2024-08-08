@@ -38,8 +38,8 @@ import (
 	"gorm.io/gorm"
 	"inet.af/netaddr"
 
-	"github.com/deepflowio/deepflow/server/controller/cloud/config"
 	"github.com/deepflowio/deepflow/server/controller/cloud/model"
+	"github.com/deepflowio/deepflow/server/controller/cloud/over_config"
 	"github.com/deepflowio/deepflow/server/controller/common"
 	"github.com/deepflowio/deepflow/server/controller/db/mysql"
 	mysqlcommon "github.com/deepflowio/deepflow/server/controller/db/mysql/over_common"
@@ -489,7 +489,7 @@ func GetHostIPByName(name string) (string, error) {
 }
 
 func getHostIPFromDNS(name string) (string, error) {
-	if config.CONF.DNSEnable {
+	if over_config.CONF.DNSEnable {
 		ips, err := net.LookupIP(name) // TODO 是否需要自定义err
 		if err == nil {
 			return ips[0].String(), err
@@ -502,7 +502,7 @@ func getHostIPFromDNS(name string) (string, error) {
 
 func getHostIPFromFile(name string) (string, error) {
 	// TODO 将此文件内容持久化，避免每次都重新读取
-	f, err := os.Open(config.CONF.HostnameToIPFile)
+	f, err := os.Open(over_config.CONF.HostnameToIPFile)
 	if err == nil {
 		defer f.Close()
 
@@ -518,10 +518,10 @@ func getHostIPFromFile(name string) (string, error) {
 				}
 			}
 		} else {
-			log.Errorf("read file: %s failed: %v", config.CONF.HostnameToIPFile, err)
+			log.Errorf("read file: %s failed: %v", over_config.CONF.HostnameToIPFile, err)
 		}
 	} else {
-		log.Errorf("open file: %s failed: %v", config.CONF.HostnameToIPFile, err)
+		log.Errorf("open file: %s failed: %v", over_config.CONF.HostnameToIPFile, err)
 	}
 	return "", nil
 }

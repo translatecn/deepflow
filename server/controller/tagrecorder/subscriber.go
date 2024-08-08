@@ -49,25 +49,6 @@ func GetSubscriberManager() *SubscriberManager {
 	return subscriberManager
 }
 
-func (c *SubscriberManager) Init(cfg over_config.ControllerConfig) {
-	c.cfg = cfg
-}
-
-func (c *SubscriberManager) Start() (err error) {
-	log.Info("tagrecorder subscriber manager started")
-	c.domainLcuuidToIconID, c.resourceTypeToIconID, err = GetIconInfo(c.cfg)
-	if err != nil {
-		return err
-	}
-	c.subscribers = c.getSubscribers()
-	log.Infof("tagrecorder run start")
-	for _, subscriber := range c.subscribers {
-		subscriber.SetConfig(c.cfg)
-		subscriber.Subscribe()
-	}
-	return nil
-}
-
 func (m *SubscriberManager) GetSubscribers(subResourceType string) []Subscriber {
 	ss := make([]Subscriber, 0)
 	if subResourceType == pubsub.PubSubTypeDomain {
@@ -88,55 +69,6 @@ func (m *SubscriberManager) GetSubscribers(subResourceType string) []Subscriber 
 	return ss
 }
 
-func (c *SubscriberManager) getSubscribers() []Subscriber {
-	subscribers := []Subscriber{
-		NewChAZ(c.domainLcuuidToIconID, c.resourceTypeToIconID),
-		NewChVMDevice(c.resourceTypeToIconID),
-		NewChHostDevice(c.resourceTypeToIconID),
-		NewChVRouterDevice(c.resourceTypeToIconID),
-		NewChDHCPPortDevice(c.resourceTypeToIconID),
-		NewChNATGatewayDevice(c.resourceTypeToIconID),
-		NewChLBDevice(c.resourceTypeToIconID),
-		NewChRDSInstanceDevice(c.resourceTypeToIconID),
-		NewChRedisInstanceDevice(c.resourceTypeToIconID),
-		NewChPodServiceDevice(c.resourceTypeToIconID),
-		NewChPodDevice(c.resourceTypeToIconID),
-		NewChPodGroupDevice(c.resourceTypeToIconID),
-		NewChPodNodeDevice(c.resourceTypeToIconID),
-		NewChPodClusterDevice(c.resourceTypeToIconID),
-		NewChProcessDevice(c.resourceTypeToIconID),
-		NewChOSAppTag(),
-		NewChOSAppTags(),
-		NewChPodK8sLabel(),
-		NewChPodK8sLabels(),
-		NewChPodK8sAnnotation(),
-		NewChPodK8sAnnotations(),
-		NewChPodK8sEnv(),
-		NewChPodK8sEnvs(),
-		NewChChostCloudTag(),
-		NewChChostCloudTags(),
-		NewChNetwork(c.resourceTypeToIconID),
-		NewChChost(),
-		NewChGProcess(c.resourceTypeToIconID),
-		NewChVPC(c.resourceTypeToIconID),
-		NewChPodCluster(c.resourceTypeToIconID),
-		NewChPod(c.resourceTypeToIconID),
-		NewChPodGroup(c.resourceTypeToIconID),
-		NewChPodIngress(),
-		NewChPodNode(c.resourceTypeToIconID),
-		NewChPodNamespace(c.resourceTypeToIconID),
-		NewChPodService(),
-
-		NewChPodServiceK8sAnnotation(),
-		NewChPodServiceK8sAnnotations(),
-		NewChPodNSCloudTag(),
-		NewChPodNSCloudTags(),
-		NewChPodServiceK8sLabel(),
-		NewChPodServiceK8sLabels(),
-	}
-	return subscribers
-}
-
 type Subscriber interface {
 	Subscribe()
 	SetConfig(over_config.ControllerConfig)
@@ -155,8 +87,7 @@ type SubscriberDataGenerator[MUPT msgconstraint.FieldsUpdatePtr[MUT], MUT msgcon
 }
 
 type SubscriberComponent[MUPT msgconstraint.FieldsUpdatePtr[MUT], MUT msgconstraint.FieldsUpdate, MT constraint.MySQLModel, CT MySQLChModel, KT ChModelKey] struct {
-	cfg over_config.ControllerConfig
-
+	cfg                 over_config.ControllerConfig
 	subResourceTypeName string // 订阅表资源类型，即源表资源类型
 	resourceTypeName    string // CH表资源类型
 	dbOperator          operator[CT, KT]
@@ -193,19 +124,8 @@ func (s *SubscriberComponent[MUPT, MUT, MT, CT, KT]) generateKeyTargets(md *mess
 	return keys, targets
 }
 
-func (s *SubscriberComponent[MUPT, MUT, MT, CT, KT]) SetConfig(cfg over_config.ControllerConfig) {
-	s.cfg = cfg
-	s.dbOperator.setConfig(cfg)
-}
-
 func (s *SubscriberComponent[MUPT, MUT, MT, CT, KT]) SetIconInfo(domainLcuuidToIconID map[string]int, resourceTypeToIconID map[IconKey]int) {
 
-}
-
-func (s *SubscriberComponent[MUPT, MUT, MT, CT, KT]) Subscribe() {
-	pubsub.Subscribe(s.subResourceTypeName, pubsub.TopicResourceBatchAddedMySQL, s)
-	pubsub.Subscribe(s.subResourceTypeName, pubsub.TopicResourceUpdatedFields, s)
-	pubsub.Subscribe(s.subResourceTypeName, pubsub.TopicResourceBatchDeletedMySQL, s)
 }
 
 // OnResourceBatchAdded implements interface Subscriber in recorder/pubsub/subscriber.go
@@ -266,4 +186,80 @@ func (s *SubscriberComponent[MUPT, MUT, MT, CT, KT]) OnSubDomainDeleted(md *mess
 	if err := db.Where("sub_domain_id = ?", md.SubDomainID).Delete(&chModel).Error; err != nil {
 		log.Error(err)
 	}
+}
+func (c *SubscriberManager) Init(cfg over_config.ControllerConfig) {
+	c.cfg = cfg
+}
+func (c *SubscriberManager) getSubscribers() []Subscriber {
+	subscribers := []Subscriber{
+		NewChAZ(c.domainLcuuidToIconID, c.resourceTypeToIconID),
+		NewChVMDevice(c.resourceTypeToIconID),
+		NewChHostDevice(c.resourceTypeToIconID),
+		NewChVRouterDevice(c.resourceTypeToIconID),
+		NewChDHCPPortDevice(c.resourceTypeToIconID),
+		NewChNATGatewayDevice(c.resourceTypeToIconID),
+		NewChLBDevice(c.resourceTypeToIconID),
+		NewChRDSInstanceDevice(c.resourceTypeToIconID),
+		NewChRedisInstanceDevice(c.resourceTypeToIconID),
+		NewChPodServiceDevice(c.resourceTypeToIconID),
+		NewChPodDevice(c.resourceTypeToIconID),
+		NewChPodGroupDevice(c.resourceTypeToIconID),
+		NewChPodNodeDevice(c.resourceTypeToIconID),
+		NewChPodClusterDevice(c.resourceTypeToIconID),
+		NewChProcessDevice(c.resourceTypeToIconID),
+		NewChOSAppTag(),
+		NewChOSAppTags(),
+		NewChPodK8sLabel(),
+		NewChPodK8sLabels(),
+		NewChPodK8sAnnotation(),
+		NewChPodK8sAnnotations(),
+		NewChPodK8sEnv(),
+		NewChPodK8sEnvs(),
+		NewChChostCloudTag(),
+		NewChChostCloudTags(),
+		NewChNetwork(c.resourceTypeToIconID),
+		NewChChost(),
+		NewChGProcess(c.resourceTypeToIconID),
+		NewChVPC(c.resourceTypeToIconID),
+		NewChPodCluster(c.resourceTypeToIconID),
+		NewChPod(c.resourceTypeToIconID),
+		NewChPodGroup(c.resourceTypeToIconID),
+		NewChPodIngress(),
+		NewChPodNode(c.resourceTypeToIconID),
+		NewChPodNamespace(c.resourceTypeToIconID),
+		NewChPodService(),
+
+		NewChPodServiceK8sAnnotation(),
+		NewChPodServiceK8sAnnotations(),
+		NewChPodNSCloudTag(),
+		NewChPodNSCloudTags(),
+		NewChPodServiceK8sLabel(),
+		NewChPodServiceK8sLabels(),
+	}
+	return subscribers
+}
+
+func (s *SubscriberComponent[MUPT, MUT, MT, CT, KT]) SetConfig(cfg over_config.ControllerConfig) {
+	s.cfg = cfg
+	s.dbOperator.setConfig(cfg)
+}
+func (s *SubscriberComponent[MUPT, MUT, MT, CT, KT]) Subscribe() {
+	pubsub.Subscribe(s.subResourceTypeName, pubsub.TopicResourceBatchAddedMySQL, s)
+	pubsub.Subscribe(s.subResourceTypeName, pubsub.TopicResourceUpdatedFields, s)
+	pubsub.Subscribe(s.subResourceTypeName, pubsub.TopicResourceBatchDeletedMySQL, s)
+}
+
+func (c *SubscriberManager) Start() (err error) {
+	log.Info("tagrecorder subscriber manager started") // 标签记录器  订阅者管理器 启动
+	c.domainLcuuidToIconID, c.resourceTypeToIconID, err = GetIconInfo(c.cfg)
+	if err != nil {
+		return err
+	}
+	c.subscribers = c.getSubscribers()
+	log.Infof("tagrecorder run start")
+	for _, subscriber := range c.subscribers {
+		subscriber.SetConfig(c.cfg)
+		subscriber.Subscribe() // 加入对应结构体中
+	}
+	return nil
 }

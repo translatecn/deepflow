@@ -70,7 +70,7 @@ func (g *Genesis) Start() {
 	pQueue := queue.NewOverwriteQueue("genesis-prometheus-data", g.cfg.QueueLengths)
 
 	// 由于可能需要从数据库恢复数据，这里先启动监听
-	go g.receiveGenesisSyncData(genesisSyncDataChan)
+	go g.receiveGenesisSyncData(genesisSyncDataChan) //
 	go g.receiveKubernetesData(kubernetesDataChan)
 	go g.receivePrometheusData(prometheusDataChan)
 
@@ -654,6 +654,7 @@ func (g *Genesis) GetPrometheusResponse(orgID int, clusterID string) ([]cloudmod
 	return prometheusInfo.Entries, nil
 }
 
+// -----------------------------------------------------------------------------------------
 func NewGenesis(cfg *over_config.ControllerConfig) *Genesis {
 	var sData atomic.Value
 	sData.Store(GenesisSyncData{})
